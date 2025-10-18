@@ -1,4 +1,4 @@
-package com.mysite.cloud_file_storage;
+package com.mysite.cloudfilestorage;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

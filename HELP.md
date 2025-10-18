@@ -1,7 +1,7 @@
 # Read Me First
 The following was discovered as part of building this project:
 
-* The original package name 'com.mysite.cloud-file-storage' is invalid and this project uses 'com.mysite.cloud_file_storage' instead.
+* The original package name 'com.mysite.cloud-file-storage' is invalid and this project uses 'com.mysite.cloudfilestorage' instead.
 
 # Getting Started
 

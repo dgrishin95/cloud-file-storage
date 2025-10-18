@@ -1,4 +1,4 @@
-package com.mysite.cloud_file_storage;
+package com.mysite.cloudfilestorage;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
