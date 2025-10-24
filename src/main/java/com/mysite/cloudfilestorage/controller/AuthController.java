@@ -1,7 +1,8 @@
 package com.mysite.cloudfilestorage.controller;
 
-import com.mysite.cloudfilestorage.dto.UserSignUpRequest;
-import com.mysite.cloudfilestorage.dto.UserSignUpResponse;
+import com.mysite.cloudfilestorage.dto.AuthRequest;
+import com.mysite.cloudfilestorage.dto.AuthResponse;
+import com.mysite.cloudfilestorage.security.AuthService;
 import com.mysite.cloudfilestorage.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +19,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final UserService userService;
+    private final AuthService authService;
 
     @PostMapping("/sign-up")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserSignUpResponse register(@RequestBody @Valid UserSignUpRequest userSignUpRequest) {
-        return userService.register(userSignUpRequest);
+    public AuthResponse register(@RequestBody @Valid AuthRequest authRequest) {
+        AuthResponse register = userService.register(authRequest);
+        authService.auth(authRequest);
+
+        return register;
     }
 }

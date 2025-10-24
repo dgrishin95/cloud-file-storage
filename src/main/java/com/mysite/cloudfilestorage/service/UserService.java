@@ -1,30 +1,31 @@
 package com.mysite.cloudfilestorage.service;
 
-import com.mysite.cloudfilestorage.dto.UserSignUpRequest;
-import com.mysite.cloudfilestorage.dto.UserSignUpResponse;
+import com.mysite.cloudfilestorage.dto.AuthRequest;
+import com.mysite.cloudfilestorage.dto.AuthResponse;
+import com.mysite.cloudfilestorage.mapper.UserMapper;
 import com.mysite.cloudfilestorage.model.User;
 import com.mysite.cloudfilestorage.repository.UserRepository;
-import com.mysite.cloudfilestorage.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class UserService implements UserDetailsService {
+public class UserService {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserSignUpResponse register(UserSignUpRequest userSignUpRequest) {
-        return new UserSignUpResponse(userSignUpRequest.getUsername());
-    }
+    @Transactional
+    public AuthResponse register(AuthRequest authRequest) {
+        String encodedPassword = passwordEncoder.encode(authRequest.getPassword());
 
-    @Override
-    public UserPrincipal loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findUserByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        User newUser = userMapper.toUser(authRequest);
+        newUser.setPassword(encodedPassword);
+        User savedUser = userRepository.save(newUser);
 
-        return new UserPrincipal(user);
+        return userMapper.toAuthResponse(savedUser);
     }
 }
