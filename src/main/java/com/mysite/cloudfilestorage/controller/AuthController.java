@@ -29,4 +29,12 @@ public class AuthController {
 
         return register;
     }
+
+    @PostMapping("/sign-in")
+    @ResponseStatus(HttpStatus.OK)
+    public AuthResponse login(@RequestBody @Valid AuthRequest authRequest) {
+        authService.auth(authRequest);
+
+        return new AuthResponse(authRequest.getUsername());
+    }
 }
