@@ -4,6 +4,7 @@ import com.mysite.cloudfilestorage.dto.AuthRequest;
 import com.mysite.cloudfilestorage.dto.AuthResponse;
 import com.mysite.cloudfilestorage.security.AuthService;
 import com.mysite.cloudfilestorage.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,17 +24,17 @@ public class AuthController {
 
     @PostMapping("/sign-up")
     @ResponseStatus(HttpStatus.CREATED)
-    public AuthResponse register(@RequestBody @Valid AuthRequest authRequest) {
+    public AuthResponse register(@RequestBody @Valid AuthRequest authRequest, HttpServletRequest request) {
         AuthResponse register = userService.register(authRequest);
-        authService.auth(authRequest);
+        authService.auth(authRequest, request);
 
         return register;
     }
 
     @PostMapping("/sign-in")
     @ResponseStatus(HttpStatus.OK)
-    public AuthResponse login(@RequestBody @Valid AuthRequest authRequest) {
-        authService.auth(authRequest);
+    public AuthResponse login(@RequestBody @Valid AuthRequest authRequest, HttpServletRequest request) {
+        authService.auth(authRequest, request);
 
         return new AuthResponse(authRequest.getUsername());
     }
