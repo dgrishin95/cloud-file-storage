@@ -32,4 +32,9 @@ public class AuthService {
         HttpSession session = request.getSession(true);
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
     }
+
+    public UserPrincipal getUserPrincipal() {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        return (UserPrincipal) securityContext.getAuthentication().getPrincipal();
+    }
 }
