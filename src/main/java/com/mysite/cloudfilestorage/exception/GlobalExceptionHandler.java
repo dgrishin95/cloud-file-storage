@@ -3,6 +3,7 @@ package com.mysite.cloudfilestorage.exception;
 import com.mysite.cloudfilestorage.dto.ErrorMessageResponse;
 import java.util.Objects;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -21,5 +22,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ErrorMessageResponse handleUserAlreadyExists(UserAlreadyExistsException ex) {
         return new ErrorMessageResponse(ex.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(Exception.class)
+    public ErrorMessageResponse handleUserAlreadyExists(Exception ex) {
+        if (ex instanceof AuthenticationException) {
+            throw (AuthenticationException) ex;
+        }
+
+        return new ErrorMessageResponse("Unknown error");
     }
 }
