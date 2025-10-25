@@ -19,7 +19,7 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.getWriter().write(
                 """
                         {
-                            "message": "There is no such user, or the password is incorrect"
+                            "message": "User is not authorized"
                         }
                         """
         );

@@ -1,12 +1,14 @@
 package com.mysite.cloudfilestorage.security;
 
 import com.mysite.cloudfilestorage.dto.AuthRequest;
+import com.mysite.cloudfilestorage.exception.UserIsNotExistsException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -22,7 +24,13 @@ public class AuthService {
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                 new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword());
 
-        Authentication authenticate = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+        Authentication authenticate;
+
+        try {
+            authenticate = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+        } catch (AuthenticationException e) {
+            throw new UserIsNotExistsException("There is no such user, or the password is incorrect");
+        }
 
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(authenticate);

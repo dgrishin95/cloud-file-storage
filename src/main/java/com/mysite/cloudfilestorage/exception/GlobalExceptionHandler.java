@@ -24,6 +24,12 @@ public class GlobalExceptionHandler {
         return new ErrorMessageResponse(ex.getMessage());
     }
 
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler(UserIsNotExistsException.class)
+    public ErrorMessageResponse handleUserIsNotExists(UserIsNotExistsException ex) {
+        return new ErrorMessageResponse(ex.getMessage());
+    }
+
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public ErrorMessageResponse handleUserAlreadyExists(Exception ex) {
