@@ -1,7 +1,7 @@
 package com.mysite.cloudfilestorage.exception;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.mysite.cloudfilestorage.dto.ErrorMessageResponse;
+import java.util.Objects;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -13,11 +13,13 @@ public class GlobalExceptionHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Map<String, String> handleInvalidArgument(MethodArgumentNotValidException ex) {
-        Map<String, String> errorMap = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                errorMap.put(error.getField(), error.getDefaultMessage()));
+    public ErrorMessageResponse handleInvalidArgument(MethodArgumentNotValidException ex) {
+        return new ErrorMessageResponse(Objects.requireNonNull(ex.getFieldError()).getDefaultMessage());
+    }
 
-        return errorMap;
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ErrorMessageResponse handleUserAlreadyExists(UserAlreadyExistsException ex) {
+        return new ErrorMessageResponse(ex.getMessage());
     }
 }
