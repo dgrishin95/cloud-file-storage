@@ -153,6 +153,25 @@ class AuthControllerTest {
                 .body("message", equalTo("The request is executed by an unauthorized user"));
     }
 
+    @Test
+    @DisplayName("GET /user/me - 200 successful response")
+    void testGettingMessage() {
+        successfulRegisterResponse();
+        Response loginResponse = successfulLoginResponse();
+
+        String sessionId = loginResponse.sessionId();
+        String cookie = loginResponse.cookie("JSESSIONID");
+
+        given()
+                .when()
+                .sessionId(sessionId)
+                .cookie(cookie)
+                .get("http://localhost:" + port + "/api/user/me")
+                .then()
+                .statusCode(200)
+                .body("username", equalTo(validAuthRequest().getUsername()));
+    }
+
     private Response successfulRegisterResponse() {
         return given()
                 .contentType(ContentType.JSON)
