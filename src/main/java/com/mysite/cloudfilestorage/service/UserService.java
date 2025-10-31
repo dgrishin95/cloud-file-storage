@@ -7,7 +7,7 @@ import com.mysite.cloudfilestorage.exception.UserAlreadyExistsException;
 import com.mysite.cloudfilestorage.mapper.UserMapper;
 import com.mysite.cloudfilestorage.model.User;
 import com.mysite.cloudfilestorage.repository.UserRepository;
-import com.mysite.cloudfilestorage.security.AuthService;
+import com.mysite.cloudfilestorage.security.CurrentUserProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    private final AuthService authService;
+    private final CurrentUserProvider currentUserProvider;
 
     @Transactional
     public AuthResponse register(AuthRequest authRequest) {
@@ -42,6 +42,6 @@ public class UserService {
     }
 
     public UserResponse getInfo() {
-        return new UserResponse(authService.getUserPrincipal().getUsername());
+        return new UserResponse(currentUserProvider.getCurrentUser().getUsername());
     }
 }
