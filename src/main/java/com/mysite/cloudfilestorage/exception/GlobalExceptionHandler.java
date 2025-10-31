@@ -32,7 +32,7 @@ public class GlobalExceptionHandler {
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
-    public ErrorMessageResponse handleUserAlreadyExists(Exception ex) {
+    public ErrorMessageResponse handleOtherExceptions(Exception ex) {
         if (ex instanceof AuthenticationException) {
             throw (AuthenticationException) ex;
         }
