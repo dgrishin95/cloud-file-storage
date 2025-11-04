@@ -1,6 +1,8 @@
 package com.mysite.cloudfilestorage.exception;
 
 import com.mysite.cloudfilestorage.dto.ErrorMessageResponse;
+import com.mysite.cloudfilestorage.exception.minio.InvalidPathException;
+import com.mysite.cloudfilestorage.exception.minio.ResourceIsNotFoundException;
 import java.util.Objects;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
@@ -27,6 +29,18 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(UserIsNotExistsException.class)
     public ErrorMessageResponse handleUserIsNotExists(UserIsNotExistsException ex) {
+        return new ErrorMessageResponse(ex.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(InvalidPathException.class)
+    public ErrorMessageResponse handleInvalidPath(InvalidPathException ex) {
+        return new ErrorMessageResponse(ex.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(ResourceIsNotFoundException.class)
+    public ErrorMessageResponse handleResourceIsNotFound(ResourceIsNotFoundException ex) {
         return new ErrorMessageResponse(ex.getMessage());
     }
 
