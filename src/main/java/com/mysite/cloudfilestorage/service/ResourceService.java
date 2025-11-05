@@ -64,4 +64,25 @@ public class ResourceService {
                 .type(ResourceType.FILE)
                 .build();
     }
+
+    public void removeResource(String path) throws Exception {
+        pathValidator.validatePath(path);
+
+        Long userId = currentUserProvider.getCurrentUser().getUser().getId();
+        String key = minioKeyBuilder.buildUserFileKey(userId, path);
+
+        if (PathUtil.isDirectory(path)) {
+            removeDirectoryResource(key);
+        } else {
+            removeFileResource(key);
+        }
+    }
+
+    private void removeFileResource(String key) throws Exception {
+        minioStorageService.removeObject(key);
+    }
+
+    private void removeDirectoryResource(String key) throws Exception {
+        minioStorageService.removeObjects(key);
+    }
 }
