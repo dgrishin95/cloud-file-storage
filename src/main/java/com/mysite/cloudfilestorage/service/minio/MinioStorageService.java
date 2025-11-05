@@ -42,6 +42,10 @@ public class MinioStorageService {
             items.add(result.get());
         }
 
+        if (items.isEmpty()) {
+            throw new ResourceIsNotFoundException("The resource was not found");
+        }
+
         return items;
     }
 
