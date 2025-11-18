@@ -2,6 +2,8 @@ package com.mysite.cloudfilestorage.service.minio;
 
 import com.mysite.cloudfilestorage.config.minio.MinioProperties;
 import com.mysite.cloudfilestorage.exception.minio.ResourceIsNotFoundException;
+import com.mysite.cloudfilestorage.util.PathUtil;
+import io.minio.GetObjectArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
 import io.minio.RemoveObjectArgs;
@@ -13,8 +15,13 @@ import io.minio.errors.ErrorResponseException;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -86,6 +93,45 @@ public class MinioStorageService {
 
         for (Result<DeleteError> result : results) {
             result.get();
+        }
+    }
+
+    public InputStream downloadObject(String key) throws Exception {
+        return getObject(key);
+    }
+
+    public ByteArrayInputStream downloadObjects(String path, String key) throws Exception {
+        List<Item> objects = getListObjects(key, true);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);
+
+        for (Item item : objects) {
+            String fullNameOfDownloadedFile = item.objectName();
+            String nameForDownloadedFile = PathUtil.getNameForDownloadedFile(path, fullNameOfDownloadedFile);
+
+            InputStream downloadedFile = getObject(fullNameOfDownloadedFile);
+            ZipEntry entry = new ZipEntry(nameForDownloadedFile);
+            zipOutputStream.putNextEntry(entry);
+            downloadedFile.transferTo(zipOutputStream);
+
+            zipOutputStream.closeEntry();
+        }
+
+        zipOutputStream.close();
+        byteArrayOutputStream.close();
+
+        return new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+    }
+
+    public InputStream getObject(String key) throws Exception {
+        try {
+            return minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(minioProperties.getBucket())
+                            .object(key)
+                            .build());
+        } catch (ErrorResponseException exception) {
+            throw new ResourceIsNotFoundException("The resource was not found");
         }
     }
 }

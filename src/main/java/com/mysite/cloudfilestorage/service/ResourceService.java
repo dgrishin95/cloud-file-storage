@@ -1,5 +1,6 @@
 package com.mysite.cloudfilestorage.service;
 
+import com.mysite.cloudfilestorage.dto.DownloadResult;
 import com.mysite.cloudfilestorage.dto.ResourceResponse;
 import com.mysite.cloudfilestorage.dto.ResourceType;
 import com.mysite.cloudfilestorage.security.CurrentUserProvider;
@@ -9,6 +10,8 @@ import com.mysite.cloudfilestorage.util.PathUtil;
 import com.mysite.cloudfilestorage.validation.PathValidator;
 import io.minio.StatObjectResponse;
 import io.minio.messages.Item;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -84,5 +87,28 @@ public class ResourceService {
 
     private void removeDirectoryResource(String key) throws Exception {
         minioStorageService.removeObjects(key);
+    }
+
+    public DownloadResult downloadResource(String path) throws Exception {
+        pathValidator.validatePath(path);
+
+        Long userId = currentUserProvider.getCurrentUser().getUser().getId();
+        String key = minioKeyBuilder.buildUserFileKey(userId, path);
+
+        if (PathUtil.isDirectory(path)) {
+            String zipName = PathUtil.getNameForDownloadedDirectory(path) + ".zip";
+            return new DownloadResult(zipName, downloadDirectoryResource(path, key));
+        } else {
+            String fileName = PathUtil.getNameForFile(path);
+            return new DownloadResult(fileName, downloadFileReResource(key));
+        }
+    }
+
+    private InputStream downloadFileReResource(String key) throws Exception {
+        return minioStorageService.downloadObject(key);
+    }
+
+    private ByteArrayInputStream downloadDirectoryResource(String path, String key) throws Exception {
+        return minioStorageService.downloadObjects(path, key);
     }
 }

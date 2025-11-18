@@ -45,4 +45,14 @@ public class PathUtil {
 
         return folderPath;
     }
+
+    public String getNameForDownloadedFile(String folder, String fileName) {
+        int begin = fileName.indexOf(folder) + folder.length();
+        return fileName.substring(begin);
+    }
+
+    public static String getNameForDownloadedDirectory(String path) {
+        String[] folders = path.split("/");
+        return folders[folders.length - 1];
+    }
 }
