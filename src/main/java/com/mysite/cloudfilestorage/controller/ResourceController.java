@@ -45,4 +45,9 @@ public class ResourceController {
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(new InputStreamResource(downloadResult.inputStream()));
     }
+
+    @GetMapping("/move")
+    public ResourceResponse moveResource(@RequestParam("from") String from, @RequestParam("to") String to) throws Exception {
+        return resourceService.moveResource(from, to);
+    }
 }

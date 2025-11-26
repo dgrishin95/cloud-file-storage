@@ -1,7 +1,9 @@
 package com.mysite.cloudfilestorage.exception;
 
 import com.mysite.cloudfilestorage.dto.ErrorMessageResponse;
+import com.mysite.cloudfilestorage.exception.minio.InvalidOperationException;
 import com.mysite.cloudfilestorage.exception.minio.InvalidPathException;
+import com.mysite.cloudfilestorage.exception.minio.ResourceAlreadyExistsException;
 import com.mysite.cloudfilestorage.exception.minio.ResourceIsNotFoundException;
 import java.util.Objects;
 import org.springframework.http.HttpStatus;
@@ -21,8 +23,8 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.CONFLICT)
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ErrorMessageResponse handleUserAlreadyExists(UserAlreadyExistsException ex) {
+    @ExceptionHandler({UserAlreadyExistsException.class, ResourceAlreadyExistsException.class})
+    public ErrorMessageResponse handleUserAlreadyExists(Exception ex) {
         return new ErrorMessageResponse(ex.getMessage());
     }
 
@@ -33,8 +35,8 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(InvalidPathException.class)
-    public ErrorMessageResponse handleInvalidPath(InvalidPathException ex) {
+    @ExceptionHandler({InvalidPathException.class, InvalidOperationException.class})
+    public ErrorMessageResponse handleInvalidPath(Exception ex) {
         return new ErrorMessageResponse(ex.getMessage());
     }
 

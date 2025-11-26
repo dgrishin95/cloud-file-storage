@@ -3,6 +3,8 @@ package com.mysite.cloudfilestorage.service;
 import com.mysite.cloudfilestorage.dto.DownloadResult;
 import com.mysite.cloudfilestorage.dto.ResourceResponse;
 import com.mysite.cloudfilestorage.dto.ResourceType;
+import com.mysite.cloudfilestorage.exception.minio.InvalidOperationException;
+import com.mysite.cloudfilestorage.exception.minio.ResourceAlreadyExistsException;
 import com.mysite.cloudfilestorage.security.CurrentUserProvider;
 import com.mysite.cloudfilestorage.service.minio.MinioKeyBuilder;
 import com.mysite.cloudfilestorage.service.minio.MinioStorageService;
@@ -12,6 +14,7 @@ import io.minio.StatObjectResponse;
 import io.minio.messages.Item;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -110,5 +113,53 @@ public class ResourceService {
 
     private ByteArrayInputStream downloadDirectoryResource(String path, String key) throws Exception {
         return minioStorageService.downloadObjects(path, key);
+    }
+
+    // Если последняя часть (имя) совпадает, но различается путь до неё → это перемещение.
+    // Если совпадает всё до последнего /, но отличается часть после него → это переименование.
+    public ResourceResponse moveResource(String from, String to) throws Exception {
+        pathValidator.validatePath(from);
+        pathValidator.validatePath(to);
+
+        Long userId = currentUserProvider.getCurrentUser().getUser().getId();
+        String key = minioKeyBuilder.buildUserFileKey(userId, from);
+
+        if (PathUtil.isDirectory(from)) {
+            return moveDirectory(key, from, to);
+        }
+
+        return null;
+    }
+
+    private ResourceResponse moveDirectory(String key, String from, String to) throws Exception {
+        if (PathUtil.isMove(from, to) || PathUtil.isRename(from, to)) {
+            return moveDirectoryResource(key, from, to);
+        } else {
+            throw new InvalidOperationException("The paths differ");
+        }
+    }
+
+    private ResourceResponse moveDirectoryResource(String key, String from, String to) throws Exception {
+        List<String> objectsNames = minioStorageService.getListObjects(key, true)
+                .stream()
+                .map(Item::objectName)
+                .toList();
+
+        List<String> newObjectsNames = objectsNames
+                .stream()
+                .map(objectName -> PathUtil.getNewKeyForMovingFile(objectName, from, to))
+                .toList();
+
+        if (objectsNames.stream().anyMatch(newObjectsNames::contains)) {
+            throw new ResourceAlreadyExistsException("The resource on the way to already exists");
+        }
+
+        for (int i = 0; i < objectsNames.size(); i++) {
+            minioStorageService.copyObject(objectsNames.get(i), newObjectsNames.get(i));
+        }
+
+        minioStorageService.removeObjects(key);
+
+        return getDirectoryResource(newObjectsNames.getFirst());
     }
 }

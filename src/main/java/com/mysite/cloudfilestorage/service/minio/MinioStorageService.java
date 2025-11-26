@@ -3,6 +3,8 @@ package com.mysite.cloudfilestorage.service.minio;
 import com.mysite.cloudfilestorage.config.minio.MinioProperties;
 import com.mysite.cloudfilestorage.exception.minio.ResourceIsNotFoundException;
 import com.mysite.cloudfilestorage.util.PathUtil;
+import io.minio.CopyObjectArgs;
+import io.minio.CopySource;
 import io.minio.GetObjectArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
@@ -133,5 +135,18 @@ public class MinioStorageService {
         } catch (ErrorResponseException exception) {
             throw new ResourceIsNotFoundException("The resource was not found");
         }
+    }
+
+    public void copyObject(String oldKey, String newKey) throws Exception {
+        minioClient.copyObject(
+                CopyObjectArgs.builder()
+                        .bucket(minioProperties.getBucket())
+                        .object(newKey)
+                        .source(
+                                CopySource.builder()
+                                        .bucket(minioProperties.getBucket())
+                                        .object(oldKey)
+                                        .build())
+                        .build());
     }
 }

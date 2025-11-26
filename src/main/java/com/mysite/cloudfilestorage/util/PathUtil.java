@@ -55,4 +55,45 @@ public class PathUtil {
         String[] folders = path.split("/");
         return folders[folders.length - 1];
     }
+
+    // Если совпадает всё до последнего /, но отличается часть после него → это переименование.
+    public boolean isRename(String from, String to) {
+        String fromDir = getNameDir(from);
+        String fromName = getName(from);
+
+        String toDir = getNameDir(to);
+        String toName = getName(to);
+
+        return fromDir.equals(toDir)
+                && !fromName.equals(toName)
+                && from.charAt(from.length() - 1) == to.charAt(to.length() - 1);
+    }
+
+    // Если последняя часть (имя) совпадает, но различается путь до неё → это перемещение.
+    public boolean isMove(String from, String to) {
+        String fromDir = getNameDir(from);
+        String fromName = getName(from);
+
+        String toDir = getNameDir(to);
+        String toName = getName(to);
+
+        return !fromDir.equals(toDir)
+                && fromName.equals(toName)
+                && from.charAt(from.length() - 1) == to.charAt(to.length() - 1);
+    }
+
+    private static String getNameDir(String objectName) {
+        objectName = objectName.substring(0, objectName.length() - 1);
+        return objectName.substring(0, objectName.lastIndexOf("/") + 1);
+    }
+
+    private static String getName(String objectName) {
+        objectName = objectName.substring(0, objectName.length() - 1);
+        return objectName.substring(objectName.lastIndexOf("/") + 1);
+    }
+
+    public String getNewKeyForMovingFile(String key, String from, String to) {
+        String path = getNameDir(from);
+        return key.substring(0, key.lastIndexOf(path)) + to + key.substring(key.indexOf(from) + from.length());
+    }
 }
