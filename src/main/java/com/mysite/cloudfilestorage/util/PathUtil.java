@@ -2,6 +2,7 @@ package com.mysite.cloudfilestorage.util;
 
 import java.nio.file.Paths;
 import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
 
 @UtilityClass
 public class PathUtil {
@@ -64,9 +65,16 @@ public class PathUtil {
         String toDir = getNameDir(to);
         String toName = getName(to);
 
-        return fromDir.equals(toDir)
-                && !fromName.equals(toName)
-                && from.charAt(from.length() - 1) == to.charAt(to.length() - 1);
+        boolean isFromDirContainsOnlyOneSlash = StringUtils.countMatches(from, "/") == 1;
+        boolean isToDirContainsOnlyOneSlash = StringUtils.countMatches(to, "/") == 1;
+
+        boolean isRename =  fromDir.equals(toDir) && !fromName.equals(toName);
+
+        if (isDirectory(from)) {
+            return isRename && checkPathsForDirectory(from, to) || isFromDirContainsOnlyOneSlash && isToDirContainsOnlyOneSlash;
+        }
+
+        return isRename;
     }
 
     // Если последняя часть (имя) совпадает, но различается путь до неё → это перемещение.
@@ -77,17 +85,26 @@ public class PathUtil {
         String toDir = getNameDir(to);
         String toName = getName(to);
 
-        return !fromDir.equals(toDir)
-                && fromName.equals(toName)
-                && from.charAt(from.length() - 1) == to.charAt(to.length() - 1);
+        boolean isMove = !fromDir.equals(toDir) && fromName.equals(toName);
+
+        if (isDirectory(from)) {
+            return isMove && checkPathsForDirectory(from, to);
+        }
+
+        return isMove;
     }
 
-    private static String getNameDir(String objectName) {
+    public static String getNameDir(String objectName) {
         objectName = objectName.substring(0, objectName.length() - 1);
+
+        if (!objectName.contains("/")) {
+            return objectName + "/";
+        }
+
         return objectName.substring(0, objectName.lastIndexOf("/") + 1);
     }
 
-    private static String getName(String objectName) {
+    public static String getName(String objectName) {
         objectName = objectName.substring(0, objectName.length() - 1);
         return objectName.substring(objectName.lastIndexOf("/") + 1);
     }
@@ -95,5 +112,9 @@ public class PathUtil {
     public String getNewKeyForMovingFile(String key, String from, String to) {
         String path = getNameDir(from);
         return key.substring(0, key.lastIndexOf(path)) + to + key.substring(key.indexOf(from) + from.length());
+    }
+
+    private boolean checkPathsForDirectory(String from, String to) {
+        return from.charAt(from.length() - 1) == to.charAt(to.length() - 1);
     }
 }

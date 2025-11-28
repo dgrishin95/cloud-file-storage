@@ -34,10 +34,6 @@ public class MinioStorageService {
     private final MinioClient minioClient;
     private final MinioProperties minioProperties;
 
-    public Item getFirstOrThrow(String key) throws Exception {
-        return getListObjects(key, false).getFirst();
-    }
-
     public List<Item> getListObjects(String key, boolean recursive) throws Exception {
         Iterable<Result<Item>> results = minioClient.listObjects(
                 ListObjectsArgs.builder()
@@ -49,10 +45,6 @@ public class MinioStorageService {
         List<Item> items = new ArrayList<>();
         for (Result<Item> result : results) {
             items.add(result.get());
-        }
-
-        if (items.isEmpty()) {
-            throw new ResourceIsNotFoundException("The resource was not found");
         }
 
         return items;
@@ -81,8 +73,8 @@ public class MinioStorageService {
                         .build());
     }
 
-    public void removeObjects(String key) throws Exception {
-        List<DeleteObject> objectsForRemove = getListObjects(key, true)
+    public void removeObjects(List<Item> objects) throws Exception {
+        List<DeleteObject> objectsForRemove = objects
                 .stream()
                 .map(item -> new DeleteObject(item.objectName()))
                 .toList();
@@ -102,8 +94,7 @@ public class MinioStorageService {
         return getObject(key);
     }
 
-    public ByteArrayInputStream downloadObjects(String path, String key) throws Exception {
-        List<Item> objects = getListObjects(key, true);
+    public ByteArrayInputStream downloadObjects(String path, List<Item> objects) throws Exception {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);
 
