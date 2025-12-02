@@ -3,6 +3,7 @@ package com.mysite.cloudfilestorage.controller;
 import com.mysite.cloudfilestorage.dto.DownloadResult;
 import com.mysite.cloudfilestorage.dto.ResourceResponse;
 import com.mysite.cloudfilestorage.service.ResourceService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -49,5 +50,10 @@ public class ResourceController {
     @GetMapping("/move")
     public ResourceResponse moveResource(@RequestParam("from") String from, @RequestParam("to") String to) throws Exception {
         return resourceService.moveResource(from, to);
+    }
+
+    @GetMapping("/search")
+    public List<ResourceResponse> searchResource(@RequestParam("query") String query) throws Exception {
+        return resourceService.searchResource(query);
     }
 }

@@ -1,6 +1,10 @@
 package com.mysite.cloudfilestorage.util;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 
@@ -116,5 +120,30 @@ public class PathUtil {
 
     private boolean checkPathsForDirectory(String from, String to) {
         return from.charAt(from.length() - 1) == to.charAt(to.length() - 1);
+    }
+
+    public static List<String> getSubKeys(String key, String query) {
+        List<String> subKeys = new ArrayList<>();
+        Map<Integer, String> keyParts = new HashMap<>();
+        int index = 0;
+
+        for (int i = 0; i < key.length(); i++) {
+            if (key.charAt(i) == '/') {
+                keyParts.put(i, key.substring(index, i));
+                index = i + 1;
+            }
+
+            if (key.length() == i + 1) {
+                keyParts.put(i, key.substring(index, i + 1));
+            }
+        }
+
+        keyParts.forEach((keyPartBeginIndex, keyPart) -> {
+            if (keyPart.contains(query)) {
+                subKeys.add(key.substring(0, keyPartBeginIndex + 1));
+            }
+        });
+
+        return subKeys;
     }
 }

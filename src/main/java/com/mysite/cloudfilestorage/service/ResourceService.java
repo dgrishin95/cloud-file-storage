@@ -15,7 +15,10 @@ import io.minio.StatObjectResponse;
 import io.minio.messages.Item;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -47,8 +50,10 @@ public class ResourceService {
 
         Item item = objects.getFirst();
 
-        String objectName = item.objectName();
+        return getDirectoryResourceResponse(item.objectName());
+    }
 
+    private ResourceResponse getDirectoryResourceResponse(String objectName) {
         String folderPath = PathUtil.getPathForDirectory(objectName);
         String name = PathUtil.getNameForDirectory(objectName);
 
@@ -204,5 +209,37 @@ public class ResourceService {
         if (items.isEmpty()) {
             throw new ResourceIsNotFoundException("The resource was not found");
         }
+    }
+
+    public List<ResourceResponse> searchResource(String query) throws Exception {
+        pathValidator.validateQuery(query);
+
+        Long userId = currentUserProvider.getCurrentUser().getUser().getId();
+        String userDirectoryName = minioKeyBuilder.buildUserDirectoryName(userId);
+
+        Set<String> subKeys = new HashSet<>();
+
+        List<Item> listObjects = minioStorageService.getListObjects(userDirectoryName, true);
+
+        for (Item item : listObjects) {
+            List<String> foundSubKeys = PathUtil.getSubKeys(item.objectName(), query);
+            subKeys.addAll(foundSubKeys);
+        }
+
+        return subKeys
+                .stream()
+                .filter(s -> !s.equals(userDirectoryName))
+                .map(subKey -> {
+                    if (PathUtil.isDirectory(subKey)) {
+                        return getDirectoryResourceResponse(subKey);
+                    }
+                    try {
+                        return getFileResource(subKey);
+                    } catch (Exception exception) {
+                        throw new ResourceIsNotFoundException("The resource was not found");
+                    }
+                })
+                .sorted(Comparator.comparing(ResourceResponse::getType))
+                .toList();
     }
 }

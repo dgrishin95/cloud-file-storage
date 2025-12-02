@@ -8,4 +8,8 @@ public class MinioKeyBuilder {
     public String buildUserFileKey(Long userId, String path) {
         return "user-" + userId + "-files/" + path;
     }
+
+    public String buildUserDirectoryName(Long userId) {
+        return "user-" + userId + "-files/";
+    }
 }
