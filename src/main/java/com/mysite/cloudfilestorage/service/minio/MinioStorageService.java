@@ -8,6 +8,7 @@ import io.minio.CopySource;
 import io.minio.GetObjectArgs;
 import io.minio.ListObjectsArgs;
 import io.minio.MinioClient;
+import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
 import io.minio.RemoveObjectsArgs;
 import io.minio.Result;
@@ -138,6 +139,15 @@ public class MinioStorageService {
                                         .bucket(minioProperties.getBucket())
                                         .object(oldKey)
                                         .build())
+                        .build());
+    }
+
+    public void uploadObject(String key, InputStream inputStream, Long size) throws Exception {
+        minioClient.putObject(
+                PutObjectArgs.builder()
+                        .bucket(minioProperties.getBucket())
+                        .stream(inputStream, size, -1)
+                        .object(key)
                         .build());
     }
 }

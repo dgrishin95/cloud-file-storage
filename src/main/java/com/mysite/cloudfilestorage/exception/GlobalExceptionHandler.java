@@ -4,6 +4,7 @@ import com.mysite.cloudfilestorage.dto.ErrorMessageResponse;
 import com.mysite.cloudfilestorage.exception.minio.InvalidOperationException;
 import com.mysite.cloudfilestorage.exception.minio.InvalidPathException;
 import com.mysite.cloudfilestorage.exception.minio.InvalidQueryException;
+import com.mysite.cloudfilestorage.exception.minio.InvalidRequestBodyException;
 import com.mysite.cloudfilestorage.exception.minio.ResourceAlreadyExistsException;
 import com.mysite.cloudfilestorage.exception.minio.ResourceIsNotFoundException;
 import java.util.Objects;
@@ -36,7 +37,8 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({InvalidPathException.class, InvalidOperationException.class, InvalidQueryException.class})
+    @ExceptionHandler({InvalidPathException.class, InvalidOperationException.class,
+            InvalidQueryException.class, InvalidRequestBodyException.class})
     public ErrorMessageResponse handleInvalidPath(Exception ex) {
         return new ErrorMessageResponse(ex.getMessage());
     }

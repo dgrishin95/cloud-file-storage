@@ -3,6 +3,7 @@ package com.mysite.cloudfilestorage.service;
 import com.mysite.cloudfilestorage.dto.DownloadResult;
 import com.mysite.cloudfilestorage.dto.ResourceResponse;
 import com.mysite.cloudfilestorage.dto.ResourceType;
+import com.mysite.cloudfilestorage.dto.UploadResourceData;
 import com.mysite.cloudfilestorage.exception.minio.InvalidOperationException;
 import com.mysite.cloudfilestorage.exception.minio.ResourceAlreadyExistsException;
 import com.mysite.cloudfilestorage.exception.minio.ResourceIsNotFoundException;
@@ -10,17 +11,22 @@ import com.mysite.cloudfilestorage.security.CurrentUserProvider;
 import com.mysite.cloudfilestorage.service.minio.MinioKeyBuilder;
 import com.mysite.cloudfilestorage.service.minio.MinioStorageService;
 import com.mysite.cloudfilestorage.util.PathUtil;
+import com.mysite.cloudfilestorage.validation.MultipartValidator;
 import com.mysite.cloudfilestorage.validation.PathValidator;
+import com.mysite.cloudfilestorage.validation.QueryValidator;
 import io.minio.StatObjectResponse;
 import io.minio.messages.Item;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +36,8 @@ public class ResourceService {
     private final MinioKeyBuilder minioKeyBuilder;
     private final MinioStorageService minioStorageService;
     private final PathValidator pathValidator;
+    private final QueryValidator queryValidator;
+    private final MultipartValidator multipartValidator;
 
     public ResourceResponse getResource(String path) throws Exception {
         pathValidator.validatePath(path);
@@ -72,10 +80,14 @@ public class ResourceService {
         String folderPath = PathUtil.getPathForFile(objectName);
         String name = PathUtil.getNameForFile(objectName);
 
+        return getFileResourceResponse(folderPath, name, statObjectResponse.size());
+    }
+
+    private ResourceResponse getFileResourceResponse(String folderPath, String name, Long size) {
         return ResourceResponse.builder()
                 .path(folderPath)
                 .name(name)
-                .size(statObjectResponse.size())
+                .size(size)
                 .type(ResourceType.FILE)
                 .build();
     }
@@ -166,9 +178,7 @@ public class ResourceService {
                 .map(objectName -> PathUtil.getNewKeyForMovingFile(objectName, from, to))
                 .toList();
 
-        if (objectsNames.stream().anyMatch(newObjectsNames::contains)) {
-            throw new ResourceAlreadyExistsException("The resource on the way to already exists");
-        }
+        pathValidator.validateNewObjectsNamesForCreating(objectsNames, newObjectsNames);
 
         for (int i = 0; i < objectsNames.size(); i++) {
             minioStorageService.copyObject(objectsNames.get(i), newObjectsNames.get(i));
@@ -212,7 +222,7 @@ public class ResourceService {
     }
 
     public List<ResourceResponse> searchResource(String query) throws Exception {
-        pathValidator.validateQuery(query);
+        queryValidator.validateQuery(query);
 
         Long userId = currentUserProvider.getCurrentUser().getUser().getId();
         String userDirectoryName = minioKeyBuilder.buildUserDirectoryName(userId);
@@ -240,6 +250,57 @@ public class ResourceService {
                     }
                 })
                 .sorted(Comparator.comparing(ResourceResponse::getType))
+                .toList();
+    }
+
+    public List<ResourceResponse> uploadResource(String path, List<MultipartFile> resource) throws Exception {
+        pathValidator.validatePath(path);
+        pathValidator.validateIsDirectory(path);
+        multipartValidator.validateUploadedResource(resource);
+
+        Long userId = currentUserProvider.getCurrentUser().getUser().getId();
+
+        List<UploadResourceData> uploadResourceData = resource.stream()
+                .map(itemResource -> {
+                    String originalFilename = itemResource.getOriginalFilename();
+                    InputStream inputStream = multipartValidator.validateInputStream(itemResource);
+                    String itemResourceObjectKey = minioKeyBuilder.buildUserFileKey(userId, path + originalFilename);
+
+                    return new UploadResourceData(
+                            itemResourceObjectKey,
+                            inputStream,
+                            PathUtil.getPathForFile(itemResourceObjectKey),
+                            PathUtil.getNameForFile(itemResourceObjectKey),
+                            itemResource.getSize()
+                    );
+                })
+                .toList();
+
+        Set<String> uniqueKeysDirectories = uploadResourceData.stream()
+                .map(resourceData -> PathUtil.getNameDir(resourceData.key()))
+                .collect(Collectors.toSet());
+        List<Item> pathObjects = new ArrayList<>();
+        for (String uniqueKeysDirectory : uniqueKeysDirectories) {
+            pathObjects.addAll(minioStorageService.getListObjects(uniqueKeysDirectory, true));
+        }
+
+        List<String> pathObjectsNames = pathObjects.stream()
+                .map(Item::objectName)
+                .toList();
+
+        List<String> uploadedObjectsNames = uploadResourceData.stream()
+                .map(UploadResourceData::key)
+                .toList();
+
+        pathValidator.validateNewObjectsNamesForCreating(pathObjectsNames, uploadedObjectsNames);
+
+        for (UploadResourceData resourceData : uploadResourceData) {
+            minioStorageService.uploadObject(resourceData.key(), resourceData.inputStream(), resourceData.size());
+        }
+
+        return uploadResourceData.stream()
+                .map(resourceData -> getFileResourceResponse(
+                        resourceData.folderPath(), resourceData.name(), resourceData.size()))
                 .toList();
     }
 }

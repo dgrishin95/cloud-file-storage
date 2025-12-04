@@ -146,4 +146,8 @@ public class PathUtil {
 
         return subKeys;
     }
+
+    public static String makePathDirectory(String path) {
+        return path + "/";
+    }
 }
