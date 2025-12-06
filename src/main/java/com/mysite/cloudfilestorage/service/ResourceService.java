@@ -15,6 +15,7 @@ import com.mysite.cloudfilestorage.validation.MultipartValidator;
 import com.mysite.cloudfilestorage.validation.PathValidator;
 import com.mysite.cloudfilestorage.validation.QueryValidator;
 import io.minio.StatObjectResponse;
+import io.minio.errors.ErrorResponseException;
 import io.minio.messages.Item;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -73,7 +74,7 @@ public class ResourceService {
     }
 
     private ResourceResponse getFileResource(String key) throws Exception {
-        StatObjectResponse statObjectResponse = minioStorageService.getStatObjectResponse(key);
+        StatObjectResponse statObjectResponse = getFileStatResponse(key);
 
         String objectName = statObjectResponse.object();
 
@@ -81,6 +82,14 @@ public class ResourceService {
         String name = PathUtil.getNameForFile(objectName);
 
         return getFileResourceResponse(folderPath, name, statObjectResponse.size());
+    }
+
+    private StatObjectResponse getFileStatResponse(String key) throws Exception {
+        try {
+            return minioStorageService.getStatObjectResponse(key);
+        } catch (ErrorResponseException exception) {
+            throw new ResourceIsNotFoundException("The resource was not found");
+        }
     }
 
     private ResourceResponse getFileResourceResponse(String folderPath, String name, Long size) {

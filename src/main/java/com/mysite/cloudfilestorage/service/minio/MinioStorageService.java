@@ -52,16 +52,12 @@ public class MinioStorageService {
     }
 
     public StatObjectResponse getStatObjectResponse(String key) throws Exception {
-        try {
-            return minioClient.statObject(
-                    StatObjectArgs.builder()
-                            .bucket(minioProperties.getBucket())
-                            .object(key)
-                            .build()
-            );
-        } catch (ErrorResponseException exception) {
-            throw new ResourceIsNotFoundException("The resource was not found");
-        }
+        return minioClient.statObject(
+                StatObjectArgs.builder()
+                        .bucket(minioProperties.getBucket())
+                        .object(key)
+                        .build()
+        );
     }
 
     public void removeObject(String key) throws Exception {
