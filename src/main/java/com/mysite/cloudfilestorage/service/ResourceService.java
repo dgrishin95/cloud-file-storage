@@ -142,14 +142,22 @@ public class ResourceService {
     }
 
     private InputStream downloadFileReResource(String key) throws Exception {
-        return minioStorageService.downloadObject(key);
+        try {
+            return minioStorageService.downloadObject(key);
+        } catch (ErrorResponseException exception) {
+            throw new ResourceIsNotFoundException("The resource was not found");
+        }
     }
 
     private ByteArrayInputStream downloadDirectoryResource(String path, String key) throws Exception {
         List<Item> objects = minioStorageService.getListObjects(key, true);
         checkDirectoryIsEmpty(objects);
 
-        return minioStorageService.downloadObjects(path, objects);
+        try {
+            return minioStorageService.downloadObjects(path, objects);
+        } catch (ErrorResponseException exception) {
+            throw new ResourceIsNotFoundException("The resource was not found");
+        }
     }
 
     public ResourceResponse moveResource(String from, String to) throws Exception {

@@ -1,7 +1,6 @@
 package com.mysite.cloudfilestorage.service.minio;
 
 import com.mysite.cloudfilestorage.config.minio.MinioProperties;
-import com.mysite.cloudfilestorage.exception.minio.ResourceIsNotFoundException;
 import com.mysite.cloudfilestorage.util.PathUtil;
 import io.minio.CopyObjectArgs;
 import io.minio.CopySource;
@@ -14,7 +13,6 @@ import io.minio.RemoveObjectsArgs;
 import io.minio.Result;
 import io.minio.StatObjectArgs;
 import io.minio.StatObjectResponse;
-import io.minio.errors.ErrorResponseException;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
@@ -111,16 +109,12 @@ public class MinioStorageService {
         return new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
     }
 
-    public InputStream getObject(String key) throws Exception {
-        try {
-            return minioClient.getObject(
-                    GetObjectArgs.builder()
-                            .bucket(minioProperties.getBucket())
-                            .object(key)
-                            .build());
-        } catch (ErrorResponseException exception) {
-            throw new ResourceIsNotFoundException("The resource was not found");
-        }
+    private InputStream getObject(String key) throws Exception {
+        return minioClient.getObject(
+                GetObjectArgs.builder()
+                        .bucket(minioProperties.getBucket())
+                        .object(key)
+                        .build());
     }
 
     public void copyObject(String oldKey, String newKey) throws Exception {
