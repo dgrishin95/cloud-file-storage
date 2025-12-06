@@ -115,7 +115,8 @@ public class ResourceService {
     }
 
     private void removeFileResource(String key) throws Exception {
-        minioStorageService.removeObject(key);
+        StatObjectResponse fileStatResponseForRemove = getFileStatResponse(key);
+        minioStorageService.removeObject(fileStatResponseForRemove);
     }
 
     private void removeDirectoryResource(String key) throws Exception {
@@ -219,7 +220,9 @@ public class ResourceService {
         }
 
         minioStorageService.copyObject(oldKey, newKey);
-        minioStorageService.removeObject(oldKey);
+
+        StatObjectResponse fileStatResponseForRemove = getFileStatResponse(oldKey);
+        minioStorageService.removeObject(fileStatResponseForRemove);
 
         return getFileResource(newKey);
     }

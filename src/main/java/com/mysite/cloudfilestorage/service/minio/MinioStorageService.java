@@ -60,13 +60,11 @@ public class MinioStorageService {
         );
     }
 
-    public void removeObject(String key) throws Exception {
-        StatObjectResponse objectForRemove = getStatObjectResponse(key);
-
+    public void removeObject(StatObjectResponse statObjectResponseForRemove) throws Exception {
         minioClient.removeObject(
                 RemoveObjectArgs.builder()
                         .bucket(minioProperties.getBucket())
-                        .object(objectForRemove.object())
+                        .object(statObjectResponseForRemove.object())
                         .build());
     }
 
