@@ -74,14 +74,14 @@ public class ResourceService {
     }
 
     private ResourceResponse getFileResource(String key) throws Exception {
-        StatObjectResponse statObjectResponse = getFileStatResponse(key);
+        StatObjectResponse fileStatResponse = getFileStatResponse(key);
 
-        String objectName = statObjectResponse.object();
+        String objectName = fileStatResponse.object();
 
         String folderPath = PathUtil.getPathForFile(objectName);
         String name = PathUtil.getNameForFile(objectName);
 
-        return getFileResourceResponse(folderPath, name, statObjectResponse.size());
+        return getFileResourceResponse(folderPath, name, fileStatResponse.size());
     }
 
     private StatObjectResponse getFileStatResponse(String key) throws Exception {
