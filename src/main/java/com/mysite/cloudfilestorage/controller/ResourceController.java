@@ -28,7 +28,7 @@ public class ResourceController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public ResourceResponse getResource(@RequestParam("path") String path) throws Exception {
+    public ResourceResponse getResource(@RequestParam(name = "path", defaultValue = "") String path) throws Exception {
         return resourceService.getResource(path);
     }
 

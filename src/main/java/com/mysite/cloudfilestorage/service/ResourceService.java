@@ -41,14 +41,17 @@ public class ResourceService {
     private final MultipartValidator multipartValidator;
 
     public ResourceResponse getResource(String path) throws Exception {
-        pathValidator.validatePath(path);
-
         Long userId = currentUserProvider.getCurrentUser().getUser().getId();
         String key = minioKeyBuilder.buildUserFileKey(userId, path);
+        String userDirectoryName = minioKeyBuilder.buildUserDirectoryName(userId);
 
         if (PathUtil.isDirectory(path)) {
+            if (key.equals(userDirectoryName)) {
+                return getDirectoryDefaultResourceResponse();
+            }
             return getDirectoryResource(key);
         } else {
+            pathValidator.validatePath(path);
             return getFileResource(key);
         }
     }
@@ -69,6 +72,14 @@ public class ResourceService {
         return ResourceResponse.builder()
                 .path(folderPath)
                 .name(name)
+                .type(ResourceType.DIRECTORY)
+                .build();
+    }
+
+    private ResourceResponse getDirectoryDefaultResourceResponse() {
+        return ResourceResponse.builder()
+                .path("")
+                .name("")
                 .type(ResourceType.DIRECTORY)
                 .build();
     }

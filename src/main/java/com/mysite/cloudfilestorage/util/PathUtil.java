@@ -12,7 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 public class PathUtil {
 
     public boolean isDirectory(String path) {
-        return path.endsWith("/");
+        return path.endsWith("/") || path.isEmpty();
     }
 
     public String getPathForDirectory(String objectName) {
