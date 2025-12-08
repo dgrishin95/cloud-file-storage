@@ -34,7 +34,7 @@ public class ResourceController {
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeResource(@RequestParam("path") String path) throws Exception {
+    public void removeResource(@RequestParam(name = "path", defaultValue = "") String path) throws Exception {
         resourceService.removeResource(path);
     }
 

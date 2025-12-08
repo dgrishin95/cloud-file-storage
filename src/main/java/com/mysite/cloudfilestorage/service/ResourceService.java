@@ -113,14 +113,13 @@ public class ResourceService {
     }
 
     public void removeResource(String path) throws Exception {
-        pathValidator.validatePath(path);
-
         Long userId = currentUserProvider.getCurrentUser().getUser().getId();
         String key = minioKeyBuilder.buildUserFileKey(userId, path);
 
         if (PathUtil.isDirectory(path)) {
             removeDirectoryResource(key);
         } else {
+            pathValidator.validatePath(path);
             removeFileResource(key);
         }
     }
