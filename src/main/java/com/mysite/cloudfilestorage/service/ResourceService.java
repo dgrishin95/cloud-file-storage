@@ -45,13 +45,14 @@ public class ResourceService {
         String key = minioKeyBuilder.buildUserFileKey(userId, path);
         String userDirectoryName = minioKeyBuilder.buildUserDirectoryName(userId);
 
+        pathValidator.validatePath1(path);
+
         if (PathUtil.isDirectory(path)) {
             if (key.equals(userDirectoryName)) {
                 return getDirectoryDefaultResourceResponse();
             }
             return getDirectoryResource(key);
         } else {
-            pathValidator.validatePath(path);
             return getFileResource(key);
         }
     }
@@ -116,10 +117,11 @@ public class ResourceService {
         Long userId = currentUserProvider.getCurrentUser().getUser().getId();
         String key = minioKeyBuilder.buildUserFileKey(userId, path);
 
+        pathValidator.validatePath1(path);
+
         if (PathUtil.isDirectory(path)) {
             removeDirectoryResource(key);
         } else {
-            pathValidator.validatePath(path);
             removeFileResource(key);
         }
     }
@@ -137,14 +139,21 @@ public class ResourceService {
     }
 
     public DownloadResult downloadResource(String path) throws Exception {
-        pathValidator.validatePath(path);
-
         Long userId = currentUserProvider.getCurrentUser().getUser().getId();
         String key = minioKeyBuilder.buildUserFileKey(userId, path);
+        String userDirectoryName = minioKeyBuilder.buildUserDirectoryName(userId);
+
+        pathValidator.validatePath1(path);
 
         if (PathUtil.isDirectory(path)) {
-            String zipName = PathUtil.getNameForDownloadedDirectory(path) + ".zip";
-            return new DownloadResult(zipName, downloadDirectoryResource(path, key));
+            String zipName;
+            if (key.equals(userDirectoryName)) {
+                zipName = PathUtil.DEFAULT_USER_DIRECTORY_NAME + ".zip";
+                return new DownloadResult(zipName, downloadDirectoryResource(key, key));
+            } else {
+                zipName = PathUtil.getNameForDownloadedDirectory(path) + ".zip";
+                return new DownloadResult(zipName, downloadDirectoryResource(path, key));
+            }
         } else {
             String fileName = PathUtil.getNameForFile(path);
             return new DownloadResult(fileName, downloadFileReResource(key));

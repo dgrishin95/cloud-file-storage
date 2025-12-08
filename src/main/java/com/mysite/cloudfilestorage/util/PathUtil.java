@@ -11,6 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 @UtilityClass
 public class PathUtil {
 
+    public static final String DEFAULT_USER_DIRECTORY_NAME = "root";
+
     public boolean isDirectory(String path) {
         return path.endsWith("/") || path.isEmpty();
     }

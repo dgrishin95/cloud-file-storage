@@ -23,6 +23,18 @@ public class PathValidator {
                 || pathComponent.startsWith("/");
     }
 
+    public void validatePath1(String path) {
+        if (isInvalidPathComponent1(path)) {
+            throw new InvalidPathException("Invalid or missing path");
+        }
+    }
+
+    public boolean isInvalidPathComponent1(String pathComponent) {
+        return pathComponent.contains("..")
+                || pathComponent.contains("//")
+                || pathComponent.startsWith("/");
+    }
+
     public void validateNewObjectsNamesForCreating(List<String> objectsNames, List<String> newObjectsNames) {
         if (objectsNames.stream().anyMatch(newObjectsNames::contains)) {
             throw new ResourceAlreadyExistsException("The resource on the way to already exists");
