@@ -152,4 +152,8 @@ public class PathUtil {
     public static String makePathDirectory(String path) {
         return path + "/";
     }
+
+    public static boolean isPathEmpty(String path) {
+        return path.isEmpty();
+    }
 }

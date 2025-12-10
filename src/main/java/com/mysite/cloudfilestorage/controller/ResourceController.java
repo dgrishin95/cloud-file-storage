@@ -40,7 +40,8 @@ public class ResourceController {
 
     @GetMapping("/download")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<InputStreamResource> downloadResource(@RequestParam("path") String path) throws Exception {
+    public ResponseEntity<InputStreamResource> downloadResource(@RequestParam(name = "path", defaultValue = "") String path)
+            throws Exception {
         DownloadResult downloadResult = resourceService.downloadResource(path);
 
         String headerValue = "attachment; filename=\"" + downloadResult.fileName() + "\"";
@@ -52,7 +53,9 @@ public class ResourceController {
 
     @GetMapping("/move")
     @ResponseStatus(HttpStatus.OK)
-    public ResourceResponse moveResource(@RequestParam("from") String from, @RequestParam("to") String to) throws Exception {
+    public ResourceResponse moveResource(@RequestParam("from") String from,
+                                         @RequestParam(name = "to", defaultValue = "") String to)
+            throws Exception {
         return resourceService.moveResource(from, to);
     }
 

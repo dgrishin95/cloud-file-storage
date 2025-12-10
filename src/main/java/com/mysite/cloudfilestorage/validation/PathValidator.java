@@ -35,6 +35,12 @@ public class PathValidator {
                 || pathComponent.startsWith("/");
     }
 
+    public void validateFromPath(String path) {
+        if (isInvalidPathComponent1(path) || path.isEmpty()) {
+            throw new InvalidPathException("Invalid or missing path");
+        }
+    }
+
     public void validateNewObjectsNamesForCreating(List<String> objectsNames, List<String> newObjectsNames) {
         if (objectsNames.stream().anyMatch(newObjectsNames::contains)) {
             throw new ResourceAlreadyExistsException("The resource on the way to already exists");

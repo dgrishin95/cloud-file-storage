@@ -180,8 +180,8 @@ public class ResourceService {
     }
 
     public ResourceResponse moveResource(String from, String to) throws Exception {
-        pathValidator.validatePath(from);
-        pathValidator.validatePath(to);
+        pathValidator.validateFromPath(from);
+        pathValidator.validatePath1(to);
 
         Long userId = currentUserProvider.getCurrentUser().getUser().getId();
         String key = minioKeyBuilder.buildUserFileKey(userId, from);
@@ -195,7 +195,9 @@ public class ResourceService {
     }
 
     private ResourceResponse moveDirectory(String key, String from, String to) throws Exception {
-        if (PathUtil.isMove(from, to) || PathUtil.isRename(from, to)) {
+        if (PathUtil.isPathEmpty(to)) {
+            return getDirectoryResource(key);
+        } else if (PathUtil.isMove(from, to) || PathUtil.isRename(from, to)) {
             return moveDirectoryResource(key, from, to);
         } else {
             throw new InvalidOperationException("The paths differ");
@@ -227,12 +229,20 @@ public class ResourceService {
     }
 
     private ResourceResponse moveFile(String oldKey, String newKey, String from, String to) throws Exception {
+        if (PathUtil.isPathEmpty(to)) {
+//            return moveFileResourceToRootDirectory(oldKey);
+        }
         if (PathUtil.isMove(from, to) || PathUtil.isRename(from, to)) {
             return moveFileResource(oldKey, newKey);
         } else {
             throw new InvalidOperationException("The paths differ");
         }
     }
+
+//    private ResourceResponse moveFileResourceToRootDirectory(String oldKey) {
+//        String fileName = PathUtil.getNameForFile(oldKey);
+//        String newKey = minioKeyBuilder.buildUserFileKey
+//    }
 
     private ResourceResponse moveFileResource(String oldKey, String newKey) throws Exception {
         String folderPath = PathUtil.getNameDir(newKey);
