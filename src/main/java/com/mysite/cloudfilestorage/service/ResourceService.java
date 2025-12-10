@@ -45,7 +45,7 @@ public class ResourceService {
         String key = minioKeyBuilder.buildUserFileKey(userId, path);
         String userDirectoryName = minioKeyBuilder.buildUserDirectoryName(userId);
 
-        pathValidator.validatePath1(path);
+        pathValidator.validatePath(path);
 
         if (PathUtil.isDirectory(path)) {
             if (key.equals(userDirectoryName)) {
@@ -117,7 +117,7 @@ public class ResourceService {
         Long userId = currentUserProvider.getCurrentUser().getUser().getId();
         String key = minioKeyBuilder.buildUserFileKey(userId, path);
 
-        pathValidator.validatePath1(path);
+        pathValidator.validatePath(path);
 
         if (PathUtil.isDirectory(path)) {
             removeDirectoryResource(key);
@@ -143,7 +143,7 @@ public class ResourceService {
         String key = minioKeyBuilder.buildUserFileKey(userId, path);
         String userDirectoryName = minioKeyBuilder.buildUserDirectoryName(userId);
 
-        pathValidator.validatePath1(path);
+        pathValidator.validatePath(path);
 
         if (PathUtil.isDirectory(path)) {
             String zipName;
@@ -181,7 +181,7 @@ public class ResourceService {
 
     public ResourceResponse moveResource(String from, String to) throws Exception {
         pathValidator.validateFromPath(from);
-        pathValidator.validatePath1(to);
+        pathValidator.validatePath(to);
 
         Long userId = currentUserProvider.getCurrentUser().getUser().getId();
         String key = minioKeyBuilder.buildUserFileKey(userId, from);

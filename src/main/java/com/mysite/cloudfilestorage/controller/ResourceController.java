@@ -67,7 +67,7 @@ public class ResourceController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public List<ResourceResponse> uploadResource(@RequestParam("path") String path,
+    public List<ResourceResponse> uploadResource(@RequestParam(name = "path", defaultValue = "") String path,
                                                  @RequestParam("resource") List<MultipartFile> resource) throws Exception {
         return resourceService.uploadResource(path, resource);
     }

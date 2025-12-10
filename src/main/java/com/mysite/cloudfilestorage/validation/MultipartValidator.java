@@ -23,7 +23,7 @@ public class MultipartValidator {
 
     private void validateUploadedFiles(List<MultipartFile> files) {
         for (MultipartFile file : files) {
-            if (file.getSize() == 0 || pathValidator.isInvalidPathComponent(file.getOriginalFilename())) {
+            if (file.getSize() == 0 || pathValidator.isInvalidFileName(file.getOriginalFilename())) {
                 throw new InvalidRequestBodyException("Invalid request body");
             }
         }

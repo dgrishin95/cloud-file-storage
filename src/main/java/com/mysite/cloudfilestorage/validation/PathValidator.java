@@ -17,28 +17,22 @@ public class PathValidator {
     }
 
     public boolean isInvalidPathComponent(String pathComponent) {
-        return StringUtils.isBlank(pathComponent)
-                || pathComponent.contains("..")
-                || pathComponent.contains("//")
-                || pathComponent.startsWith("/");
-    }
-
-    public void validatePath1(String path) {
-        if (isInvalidPathComponent1(path)) {
-            throw new InvalidPathException("Invalid or missing path");
-        }
-    }
-
-    public boolean isInvalidPathComponent1(String pathComponent) {
         return pathComponent.contains("..")
                 || pathComponent.contains("//")
                 || pathComponent.startsWith("/");
     }
 
     public void validateFromPath(String path) {
-        if (isInvalidPathComponent1(path) || path.isEmpty()) {
+        if (isInvalidPathComponent(path) || path.isEmpty()) {
             throw new InvalidPathException("Invalid or missing path");
         }
+    }
+
+    public boolean isInvalidFileName(String pathComponent) {
+        return StringUtils.isBlank(pathComponent)
+                || pathComponent.contains("..")
+                || pathComponent.contains("//")
+                || pathComponent.startsWith("/");
     }
 
     public void validateNewObjectsNamesForCreating(List<String> objectsNames, List<String> newObjectsNames) {
