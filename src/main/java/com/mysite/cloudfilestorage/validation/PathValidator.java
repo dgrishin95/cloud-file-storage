@@ -2,7 +2,9 @@ package com.mysite.cloudfilestorage.validation;
 
 import com.mysite.cloudfilestorage.exception.minio.InvalidPathException;
 import com.mysite.cloudfilestorage.exception.minio.ResourceAlreadyExistsException;
+import com.mysite.cloudfilestorage.exception.minio.ResourceIsNotFoundException;
 import com.mysite.cloudfilestorage.util.PathUtil;
+import io.minio.messages.Item;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -44,6 +46,12 @@ public class PathValidator {
     public void validateIsDirectory(String path) {
         if (!PathUtil.isDirectory(path)) {
             throw new InvalidPathException("Invalid or missing path");
+        }
+    }
+
+    public void validateDirectoryIsEmpty(List<Item> items) {
+        if (items.isEmpty()) {
+            throw new ResourceIsNotFoundException("The resource was not found");
         }
     }
 }
