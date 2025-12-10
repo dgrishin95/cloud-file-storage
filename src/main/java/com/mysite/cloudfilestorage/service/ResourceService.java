@@ -230,35 +230,46 @@ public class ResourceService {
 
     private ResourceResponse moveFile(String oldKey, String newKey, String from, String to) throws Exception {
         if (PathUtil.isPathEmpty(to)) {
-//            return moveFileResourceToRootDirectory(oldKey);
+            return moveFileResourceToRootDirectory(oldKey, newKey);
         }
         if (PathUtil.isMove(from, to) || PathUtil.isRename(from, to)) {
-            return moveFileResource(oldKey, newKey);
+            return moveFileResourceToDirectory(oldKey, newKey);
         } else {
             throw new InvalidOperationException("The paths differ");
         }
     }
 
-//    private ResourceResponse moveFileResourceToRootDirectory(String oldKey) {
-//        String fileName = PathUtil.getNameForFile(oldKey);
-//        String newKey = minioKeyBuilder.buildUserFileKey
-//    }
-
-    private ResourceResponse moveFileResource(String oldKey, String newKey) throws Exception {
-        String folderPath = PathUtil.getNameDir(newKey);
-
-        List<String> objectsNames = minioStorageService.getListObjects(folderPath, true)
+    private ResourceResponse moveFileResourceToRootDirectory(String oldKey, String newKey) throws Exception {
+        List<String> objectsNames = minioStorageService.getListObjects(newKey, false)
                 .stream()
                 .map(Item::objectName)
                 .toList();
 
+        String fileName = PathUtil.getNameForFile(oldKey);
+        newKey = newKey + fileName;
+
+        return moveFileResource(oldKey, newKey, objectsNames);
+    }
+
+    private ResourceResponse moveFileResourceToDirectory(String oldKey, String newKey) throws Exception {
+        String folderPath = PathUtil.getNameDir(newKey);
+
+        List<String> objectsNames = minioStorageService.getListObjects(folderPath, false)
+                .stream()
+                .map(Item::objectName)
+                .toList();
+
+        return moveFileResource(oldKey, newKey, objectsNames);
+    }
+
+    private ResourceResponse moveFileResource(String oldKey, String newKey, List<String> objectsNames) throws Exception {
         if (objectsNames.contains(newKey)) {
             throw new ResourceAlreadyExistsException("The resource on the way to already exists");
         }
 
-        minioStorageService.copyObject(oldKey, newKey);
-
         StatObjectResponse fileStatResponseForRemove = getFileStatResponse(oldKey);
+
+        minioStorageService.copyObject(oldKey, newKey);
         minioStorageService.removeObject(fileStatResponseForRemove);
 
         return getFileResource(newKey);
