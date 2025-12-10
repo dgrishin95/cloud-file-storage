@@ -58,12 +58,10 @@ public class ResourceService {
     }
 
     private ResourceResponse getDirectoryResource(String key) throws Exception {
-        List<Item> objects = minioStorageService.getListObjects(key, true);
+        List<Item> objects = minioStorageService.getListObjects(key, false);
         checkDirectoryIsEmpty(objects);
 
-        Item item = objects.getFirst();
-
-        return getDirectoryResourceResponse(item.objectName());
+        return getDirectoryResourceResponse(key);
     }
 
     private ResourceResponse getDirectoryResourceResponse(String objectName) {
