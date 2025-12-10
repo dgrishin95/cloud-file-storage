@@ -1,10 +1,12 @@
-package com.mysite.cloudfilestorage.service.resource;
+package com.mysite.cloudfilestorage.service.resource.query;
 
 import com.mysite.cloudfilestorage.dto.ResourceResponse;
 import com.mysite.cloudfilestorage.exception.minio.ResourceIsNotFoundException;
-import com.mysite.cloudfilestorage.security.CurrentUserProvider;
 import com.mysite.cloudfilestorage.service.minio.MinioKeyBuilder;
 import com.mysite.cloudfilestorage.service.minio.MinioStorageService;
+import com.mysite.cloudfilestorage.service.resource.common.ResourceKeyService;
+import com.mysite.cloudfilestorage.service.resource.common.ResourceLookupService;
+import com.mysite.cloudfilestorage.service.resource.util.ResourceMapper;
 import com.mysite.cloudfilestorage.util.PathUtil;
 import com.mysite.cloudfilestorage.validation.PathValidator;
 import com.mysite.cloudfilestorage.validation.QueryValidator;
@@ -20,16 +22,17 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ResourceQueryService {
 
-    private final CurrentUserProvider currentUserProvider;
     private final MinioKeyBuilder minioKeyBuilder;
     private final MinioStorageService minioStorageService;
+    private final ResourceKeyService keyService;
+    private final ResourceLookupService lookupService;
+    private final ResourceMapper mapper;
     private final PathValidator pathValidator;
     private final QueryValidator queryValidator;
-    private final ResourceMapper mapper;
 
     public ResourceResponse getResource(String path) throws Exception {
-        Long userId = currentUserProvider.getCurrentUser().getUser().getId();
-        String key = minioKeyBuilder.buildUserFileKey(userId, path);
+        Long userId = keyService.getUserId();
+        String key = keyService.getKey(userId, path);
         String userDirectoryName = minioKeyBuilder.buildUserDirectoryName(userId);
 
         pathValidator.validatePath(path);
@@ -38,16 +41,16 @@ public class ResourceQueryService {
             if (key.equals(userDirectoryName)) {
                 return mapper.getDirectoryDefaultResourceResponse();
             }
-            return mapper.getDirectoryResource(key);
+            return lookupService.getDirectoryResource(key);
         } else {
-            return mapper.getFileResource(key);
+            return lookupService.getFileResource(key);
         }
     }
 
     public List<ResourceResponse> searchResource(String query) throws Exception {
         queryValidator.validateQuery(query);
 
-        Long userId = currentUserProvider.getCurrentUser().getUser().getId();
+        Long userId = keyService.getUserId();
         String userDirectoryName = minioKeyBuilder.buildUserDirectoryName(userId);
 
         Set<String> subKeys = new HashSet<>();
@@ -67,7 +70,7 @@ public class ResourceQueryService {
                         return mapper.getDirectoryResourceResponse(subKey);
                     }
                     try {
-                        return mapper.getFileResource(subKey);
+                        return lookupService.getFileResource(subKey);
                     } catch (Exception exception) {
                         throw new ResourceIsNotFoundException("The resource was not found");
                     }

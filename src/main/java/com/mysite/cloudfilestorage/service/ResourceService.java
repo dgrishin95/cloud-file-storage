@@ -2,10 +2,10 @@ package com.mysite.cloudfilestorage.service;
 
 import com.mysite.cloudfilestorage.dto.DownloadResult;
 import com.mysite.cloudfilestorage.dto.ResourceResponse;
-import com.mysite.cloudfilestorage.service.resource.ResourceDownloadService;
-import com.mysite.cloudfilestorage.service.resource.ResourceModificationService;
-import com.mysite.cloudfilestorage.service.resource.ResourceQueryService;
-import com.mysite.cloudfilestorage.service.resource.ResourceUploadService;
+import com.mysite.cloudfilestorage.service.resource.download.ResourceDownloadService;
+import com.mysite.cloudfilestorage.service.resource.move.ResourceModificationService;
+import com.mysite.cloudfilestorage.service.resource.query.ResourceQueryService;
+import com.mysite.cloudfilestorage.service.resource.upload.ResourceUploadService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

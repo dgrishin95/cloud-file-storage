@@ -1,10 +1,10 @@
-package com.mysite.cloudfilestorage.service.resource;
+package com.mysite.cloudfilestorage.service.resource.download;
 
 import com.mysite.cloudfilestorage.dto.DownloadResult;
 import com.mysite.cloudfilestorage.exception.minio.ResourceIsNotFoundException;
-import com.mysite.cloudfilestorage.security.CurrentUserProvider;
 import com.mysite.cloudfilestorage.service.minio.MinioKeyBuilder;
 import com.mysite.cloudfilestorage.service.minio.MinioStorageService;
+import com.mysite.cloudfilestorage.service.resource.common.ResourceKeyService;
 import com.mysite.cloudfilestorage.util.PathUtil;
 import com.mysite.cloudfilestorage.validation.PathValidator;
 import io.minio.errors.ErrorResponseException;
@@ -19,14 +19,14 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ResourceDownloadService {
 
-    private final CurrentUserProvider currentUserProvider;
     private final MinioKeyBuilder minioKeyBuilder;
     private final MinioStorageService minioStorageService;
+    private final ResourceKeyService keyService;
     private final PathValidator pathValidator;
 
     public DownloadResult downloadResource(String path) throws Exception {
-        Long userId = currentUserProvider.getCurrentUser().getUser().getId();
-        String key = minioKeyBuilder.buildUserFileKey(userId, path);
+        Long userId = keyService.getUserId();
+        String key = keyService.getKey(userId, path);
         String userDirectoryName = minioKeyBuilder.buildUserDirectoryName(userId);
 
         pathValidator.validatePath(path);

@@ -1,10 +1,10 @@
-package com.mysite.cloudfilestorage.service.resource;
+package com.mysite.cloudfilestorage.service.resource.upload;
 
 import com.mysite.cloudfilestorage.dto.ResourceResponse;
 import com.mysite.cloudfilestorage.dto.UploadResourceData;
-import com.mysite.cloudfilestorage.security.CurrentUserProvider;
-import com.mysite.cloudfilestorage.service.minio.MinioKeyBuilder;
 import com.mysite.cloudfilestorage.service.minio.MinioStorageService;
+import com.mysite.cloudfilestorage.service.resource.common.ResourceKeyService;
+import com.mysite.cloudfilestorage.service.resource.util.ResourceMapper;
 import com.mysite.cloudfilestorage.util.PathUtil;
 import com.mysite.cloudfilestorage.validation.MultipartValidator;
 import com.mysite.cloudfilestorage.validation.PathValidator;
@@ -22,25 +22,24 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class ResourceUploadService {
 
-    private final CurrentUserProvider currentUserProvider;
-    private final MinioKeyBuilder minioKeyBuilder;
     private final MinioStorageService minioStorageService;
+    private final ResourceKeyService keyService;
+    private final ResourceMapper mapper;
     private final PathValidator pathValidator;
     private final MultipartValidator multipartValidator;
-    private final ResourceMapper mapper;
 
     public List<ResourceResponse> uploadResource(String path, List<MultipartFile> resource) throws Exception {
         pathValidator.validatePath(path);
         pathValidator.validateIsDirectory(path);
         multipartValidator.validateUploadedResource(resource);
 
-        Long userId = currentUserProvider.getCurrentUser().getUser().getId();
+        Long userId = keyService.getUserId();
 
         List<UploadResourceData> uploadResourceData = resource.stream()
                 .map(itemResource -> {
                     String originalFilename = itemResource.getOriginalFilename();
                     InputStream inputStream = multipartValidator.validateInputStream(itemResource);
-                    String itemResourceObjectKey = minioKeyBuilder.buildUserFileKey(userId, path + originalFilename);
+                    String itemResourceObjectKey = keyService.getKey(userId, path + originalFilename);
 
                     return new UploadResourceData(
                             itemResourceObjectKey,

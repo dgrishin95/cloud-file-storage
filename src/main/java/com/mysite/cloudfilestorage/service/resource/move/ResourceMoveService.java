@@ -1,11 +1,11 @@
-package com.mysite.cloudfilestorage.service.resource;
+package com.mysite.cloudfilestorage.service.resource.move;
 
 import com.mysite.cloudfilestorage.dto.ResourceResponse;
 import com.mysite.cloudfilestorage.exception.minio.InvalidOperationException;
 import com.mysite.cloudfilestorage.exception.minio.ResourceAlreadyExistsException;
-import com.mysite.cloudfilestorage.security.CurrentUserProvider;
-import com.mysite.cloudfilestorage.service.minio.MinioKeyBuilder;
 import com.mysite.cloudfilestorage.service.minio.MinioStorageService;
+import com.mysite.cloudfilestorage.service.resource.common.ResourceKeyService;
+import com.mysite.cloudfilestorage.service.resource.common.ResourceLookupService;
 import com.mysite.cloudfilestorage.util.PathUtil;
 import com.mysite.cloudfilestorage.validation.PathValidator;
 import io.minio.StatObjectResponse;
@@ -16,57 +16,31 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class ResourceModificationService {
+public class ResourceMoveService {
 
-    private final CurrentUserProvider currentUserProvider;
-    private final MinioKeyBuilder minioKeyBuilder;
     private final MinioStorageService minioStorageService;
+    private final ResourceKeyService keyService;
+    private final ResourceLookupService lookupService;
     private final PathValidator pathValidator;
-    private final ResourceMapper mapper;
-
-    public void removeResource(String path) throws Exception {
-        Long userId = currentUserProvider.getCurrentUser().getUser().getId();
-        String key = minioKeyBuilder.buildUserFileKey(userId, path);
-
-        pathValidator.validatePath(path);
-
-        if (PathUtil.isDirectory(path)) {
-            removeDirectoryResource(key);
-        } else {
-            removeFileResource(key);
-        }
-    }
-
-    private void removeFileResource(String key) throws Exception {
-        StatObjectResponse fileStatResponseForRemove = mapper.getFileStatResponse(key);
-        minioStorageService.removeObject(fileStatResponseForRemove);
-    }
-
-    private void removeDirectoryResource(String key) throws Exception {
-        List<Item> objects = minioStorageService.getListObjects(key, true);
-        pathValidator.validateDirectoryIsEmpty(objects);
-
-        minioStorageService.removeObjects(objects);
-    }
 
     public ResourceResponse moveResource(String from, String to) throws Exception {
         pathValidator.validateFromPath(from);
         pathValidator.validatePath(to);
 
-        Long userId = currentUserProvider.getCurrentUser().getUser().getId();
-        String key = minioKeyBuilder.buildUserFileKey(userId, from);
+        Long userId = keyService.getUserId();
+        String key = keyService.getKey(userId, from);
 
         if (PathUtil.isDirectory(from)) {
             return moveDirectory(key, from, to);
         } else {
-            String newKey = minioKeyBuilder.buildUserFileKey(userId, to);
+            String newKey = keyService.getKey(userId, to);
             return moveFile(key, newKey, from, to);
         }
     }
 
     private ResourceResponse moveDirectory(String key, String from, String to) throws Exception {
         if (PathUtil.isPathEmpty(to)) {
-            return mapper.getDirectoryResource(key);
+            return lookupService.getDirectoryResource(key);
         } else if (PathUtil.isMove(from, to) || PathUtil.isRename(from, to)) {
             return moveDirectoryResource(key, from, to);
         } else {
@@ -95,7 +69,7 @@ public class ResourceModificationService {
 
         minioStorageService.removeObjects(objects);
 
-        return mapper.getDirectoryResource(newObjectsNames.getFirst());
+        return lookupService.getDirectoryResource(newObjectsNames.getFirst());
     }
 
     private ResourceResponse moveFile(String oldKey, String newKey, String from, String to) throws Exception {
@@ -137,11 +111,11 @@ public class ResourceModificationService {
             throw new ResourceAlreadyExistsException("The resource on the way to already exists");
         }
 
-        StatObjectResponse fileStatResponseForRemove = mapper.getFileStatResponse(oldKey);
+        StatObjectResponse fileStatResponseForRemove = lookupService.getFileStatResponse(oldKey);
 
         minioStorageService.copyObject(oldKey, newKey);
         minioStorageService.removeObject(fileStatResponseForRemove);
 
-        return mapper.getFileResource(newKey);
+        return lookupService.getFileResource(newKey);
     }
 }

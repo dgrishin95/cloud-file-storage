@@ -1,9 +1,9 @@
-package com.mysite.cloudfilestorage.service.resource;
+package com.mysite.cloudfilestorage.service.resource.common;
 
 import com.mysite.cloudfilestorage.dto.ResourceResponse;
-import com.mysite.cloudfilestorage.dto.ResourceType;
 import com.mysite.cloudfilestorage.exception.minio.ResourceIsNotFoundException;
 import com.mysite.cloudfilestorage.service.minio.MinioStorageService;
+import com.mysite.cloudfilestorage.service.resource.util.ResourceMapper;
 import com.mysite.cloudfilestorage.util.PathUtil;
 import com.mysite.cloudfilestorage.validation.PathValidator;
 import io.minio.StatObjectResponse;
@@ -15,27 +15,17 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class ResourceMapper {
+public class ResourceLookupService {
 
     private final MinioStorageService minioStorageService;
+    private final ResourceMapper mapper;
     private final PathValidator pathValidator;
 
     public ResourceResponse getDirectoryResource(String key) throws Exception {
         List<Item> objects = minioStorageService.getListObjects(key, false);
         pathValidator.validateDirectoryIsEmpty(objects);
 
-        return getDirectoryResourceResponse(key);
-    }
-
-    public ResourceResponse getDirectoryResourceResponse(String objectName) {
-        String folderPath = PathUtil.getPathForDirectory(objectName);
-        String name = PathUtil.getNameForDirectory(objectName);
-
-        return ResourceResponse.builder()
-                .path(folderPath)
-                .name(name)
-                .type(ResourceType.DIRECTORY)
-                .build();
+        return mapper.getDirectoryResourceResponse(key);
     }
 
     public ResourceResponse getFileResource(String key) throws Exception {
@@ -46,7 +36,7 @@ public class ResourceMapper {
         String folderPath = PathUtil.getPathForFile(objectName);
         String name = PathUtil.getNameForFile(objectName);
 
-        return getFileResourceResponse(folderPath, name, fileStatResponse.size());
+        return mapper.getFileResourceResponse(folderPath, name, fileStatResponse.size());
     }
 
     public StatObjectResponse getFileStatResponse(String key) throws Exception {
@@ -55,22 +45,5 @@ public class ResourceMapper {
         } catch (ErrorResponseException exception) {
             throw new ResourceIsNotFoundException("The resource was not found");
         }
-    }
-
-    public ResourceResponse getFileResourceResponse(String folderPath, String name, Long size) {
-        return ResourceResponse.builder()
-                .path(folderPath)
-                .name(name)
-                .size(size)
-                .type(ResourceType.FILE)
-                .build();
-    }
-
-    public ResourceResponse getDirectoryDefaultResourceResponse() {
-        return ResourceResponse.builder()
-                .path("")
-                .name("")
-                .type(ResourceType.DIRECTORY)
-                .build();
     }
 }
