@@ -2,7 +2,14 @@ package com.mysite.cloudfilestorage.service.resource.util;
 
 import com.mysite.cloudfilestorage.dto.ResourceResponse;
 import com.mysite.cloudfilestorage.dto.ResourceType;
+import com.mysite.cloudfilestorage.exception.minio.ResourceIsNotFoundException;
+import com.mysite.cloudfilestorage.mapper.ResourceResponseMapper;
+import com.mysite.cloudfilestorage.service.resource.common.ResourceLookupService;
 import com.mysite.cloudfilestorage.util.PathUtil;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -10,31 +17,34 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ResourceMapper {
 
-    public ResourceResponse getDirectoryResourceResponse(String objectName) {
-        String folderPath = PathUtil.getPathForDirectory(objectName);
-        String name = PathUtil.getNameForDirectory(objectName);
+    private final ResourceLookupService lookupService;
+    private final ResourceResponseMapper responseMapper;
 
-        return ResourceResponse.builder()
-                .path(folderPath)
-                .name(name)
-                .type(ResourceType.DIRECTORY)
-                .build();
-    }
-
-    public ResourceResponse getFileResourceResponse(String folderPath, String name, Long size) {
-        return ResourceResponse.builder()
-                .path(folderPath)
-                .name(name)
-                .size(size)
-                .type(ResourceType.FILE)
-                .build();
-    }
-
-    public ResourceResponse getDirectoryDefaultResourceResponse() {
+    public ResourceResponse toDirectoryDefaultResourceResponse() {
         return ResourceResponse.builder()
                 .path("")
                 .name("")
                 .type(ResourceType.DIRECTORY)
                 .build();
+    }
+
+    public List<ResourceResponse> toDirectoryFilesResourceResponse(Collection<String> keys, Predicate<String> filter) {
+        return keys
+                .stream()
+                .filter(filter)
+                .map(subKey -> {
+                    if (PathUtil.isDirectory(subKey)) {
+                        return responseMapper.toDirectoryResourceResponse(subKey);
+                    }
+                    try {
+                        return lookupService.getFileResource(subKey);
+                    } catch (Exception exception) {
+                        throw new ResourceIsNotFoundException("The resource was not found");
+                    }
+                })
+                .sorted(Comparator.comparing(ResourceResponse::getType)
+                        .thenComparing(ResourceResponse::getPath)
+                )
+                .toList();
     }
 }

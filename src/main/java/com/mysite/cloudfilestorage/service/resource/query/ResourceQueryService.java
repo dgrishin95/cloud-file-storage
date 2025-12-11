@@ -1,7 +1,6 @@
 package com.mysite.cloudfilestorage.service.resource.query;
 
 import com.mysite.cloudfilestorage.dto.ResourceResponse;
-import com.mysite.cloudfilestorage.exception.minio.ResourceIsNotFoundException;
 import com.mysite.cloudfilestorage.service.minio.MinioKeyBuilder;
 import com.mysite.cloudfilestorage.service.minio.MinioStorageService;
 import com.mysite.cloudfilestorage.service.resource.common.ResourceKeyService;
@@ -11,7 +10,7 @@ import com.mysite.cloudfilestorage.util.PathUtil;
 import com.mysite.cloudfilestorage.validation.PathValidator;
 import com.mysite.cloudfilestorage.validation.QueryValidator;
 import io.minio.messages.Item;
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,12 +38,33 @@ public class ResourceQueryService {
 
         if (PathUtil.isDirectory(path)) {
             if (key.equals(userDirectoryName)) {
-                return mapper.getDirectoryDefaultResourceResponse();
+                return mapper.toDirectoryDefaultResourceResponse();
             }
             return lookupService.getDirectoryResource(key);
         } else {
             return lookupService.getFileResource(key);
         }
+    }
+
+    public List<ResourceResponse> getResourceForDirectory(String path) throws Exception {
+        Long userId = keyService.getUserId();
+        String key = keyService.getKey(userId, path);
+        String userDirectoryName = minioKeyBuilder.buildUserDirectoryName(userId);
+
+        pathValidator.validatePath(path);
+        pathValidator.validateIsDirectory(path);
+
+        List<Item> objects = minioStorageService.getListObjects(key, false);
+        pathValidator.validateDirectoryIsEmpty(objects);
+
+        List<String> objectsNames = new ArrayList<>(objects
+                .stream()
+                .map(Item::objectName)
+                .toList());
+
+        objectsNames.removeIf(objectsName -> objectsName.equals(userDirectoryName));
+
+        return mapper.toDirectoryFilesResourceResponse(objectsNames, objectName -> true);
     }
 
     public List<ResourceResponse> searchResource(String query) throws Exception {
@@ -62,20 +82,6 @@ public class ResourceQueryService {
             subKeys.addAll(foundSubKeys);
         }
 
-        return subKeys
-                .stream()
-                .filter(s -> !s.equals(userDirectoryName))
-                .map(subKey -> {
-                    if (PathUtil.isDirectory(subKey)) {
-                        return mapper.getDirectoryResourceResponse(subKey);
-                    }
-                    try {
-                        return lookupService.getFileResource(subKey);
-                    } catch (Exception exception) {
-                        throw new ResourceIsNotFoundException("The resource was not found");
-                    }
-                })
-                .sorted(Comparator.comparing(ResourceResponse::getType))
-                .toList();
+        return mapper.toDirectoryFilesResourceResponse(subKeys, subkey -> !subkey.equals(userDirectoryName));
     }
 }

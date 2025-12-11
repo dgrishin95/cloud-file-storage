@@ -24,6 +24,10 @@ public class ResourceService {
         return queryService.getResource(path);
     }
 
+    public List<ResourceResponse> getResourceForDirectory(String path) throws Exception {
+        return queryService.getResourceForDirectory(path);
+    }
+
     public void removeResource(String path) throws Exception {
         modificationService.removeResource(path);
     }

@@ -2,9 +2,9 @@ package com.mysite.cloudfilestorage.service.resource.upload;
 
 import com.mysite.cloudfilestorage.dto.ResourceResponse;
 import com.mysite.cloudfilestorage.dto.UploadResourceData;
+import com.mysite.cloudfilestorage.mapper.ResourceResponseMapper;
 import com.mysite.cloudfilestorage.service.minio.MinioStorageService;
 import com.mysite.cloudfilestorage.service.resource.common.ResourceKeyService;
-import com.mysite.cloudfilestorage.service.resource.util.ResourceMapper;
 import com.mysite.cloudfilestorage.util.PathUtil;
 import com.mysite.cloudfilestorage.validation.MultipartValidator;
 import com.mysite.cloudfilestorage.validation.PathValidator;
@@ -24,7 +24,7 @@ public class ResourceUploadService {
 
     private final MinioStorageService minioStorageService;
     private final ResourceKeyService keyService;
-    private final ResourceMapper mapper;
+    private final ResourceResponseMapper responseMapper;
     private final PathValidator pathValidator;
     private final MultipartValidator multipartValidator;
 
@@ -74,7 +74,7 @@ public class ResourceUploadService {
         }
 
         return uploadResourceData.stream()
-                .map(resourceData -> mapper.getFileResourceResponse(
+                .map(resourceData -> responseMapper.toFileResourceResponse(
                         resourceData.folderPath(), resourceData.name(), resourceData.size()))
                 .toList();
     }
