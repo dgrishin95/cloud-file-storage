@@ -13,11 +13,11 @@ public class PathUtil {
 
     public static final String DEFAULT_USER_DIRECTORY_NAME = "root";
 
-    public boolean isDirectory(String path) {
+    public static boolean isDirectory(String path) {
         return path.endsWith("/") || path.isEmpty();
     }
 
-    public String getPathForDirectory(String objectName) {
+    public static String getParentPathOfDirectory(String objectName) {
         int first = objectName.indexOf("/");
         int last = objectName.lastIndexOf("/");
 
@@ -27,7 +27,7 @@ public class PathUtil {
         return folderPath.substring(1, last + 1);
     }
 
-    public String getNameForDirectory(String objectName) {
+    public static String getDirectoryName(String objectName) {
         int first = objectName.indexOf("/");
         int last = objectName.lastIndexOf("/");
 
@@ -36,11 +36,11 @@ public class PathUtil {
         return name.substring(name.lastIndexOf("/") + 1);
     }
 
-    public String getNameForFile(String objectName) {
+    public static String getNameForFile(String objectName) {
         return Paths.get(objectName).getFileName().toString();
     }
 
-    public String getPathForFile(String objectName) {
+    public static String getParentPathOfFile(String objectName) {
         String folderPath = "";
 
         int firstSlashIndex = objectName.indexOf('/');
@@ -53,54 +53,52 @@ public class PathUtil {
         return folderPath;
     }
 
-    public String getNameForDownloadedFile(String folder, String fileName) {
+    public static String getDownloadFileName(String folder, String fileName) {
         int begin = fileName.indexOf(folder) + folder.length();
         return fileName.substring(begin);
     }
 
-    public static String getNameForDownloadedDirectory(String path) {
+    public static String getDownloadDirectoryName(String path) {
         String[] folders = path.split("/");
         return folders[folders.length - 1];
     }
 
-    // Если совпадает всё до последнего /, но отличается часть после него → это переименование.
     public boolean isRename(String from, String to) {
-        String fromDir = getNameDir(from);
-        String fromName = getName(from);
+        String fromDir = getParentDirectoryKey(from);
+        String fromName = getLastPathSegment(from);
 
-        String toDir = getNameDir(to);
-        String toName = getName(to);
+        String toDir = getParentDirectoryKey(to);
+        String toName = getLastPathSegment(to);
 
         boolean isFromDirContainsOnlyOneSlash = StringUtils.countMatches(from, "/") == 1;
         boolean isToDirContainsOnlyOneSlash = StringUtils.countMatches(to, "/") == 1;
 
-        boolean isRename =  fromDir.equals(toDir) && !fromName.equals(toName);
+        boolean isRename = fromDir.equals(toDir) && !fromName.equals(toName);
 
         if (isDirectory(from)) {
-            return isRename && checkPathsForDirectory(from, to) || isFromDirContainsOnlyOneSlash && isToDirContainsOnlyOneSlash;
+            return isRename && areDirectoryPathsCompatible(from, to) || isFromDirContainsOnlyOneSlash && isToDirContainsOnlyOneSlash;
         }
 
         return isRename;
     }
 
-    // Если последняя часть (имя) совпадает, но различается путь до неё → это перемещение.
-    public boolean isMove(String from, String to) {
-        String fromDir = getNameDir(from);
-        String fromName = getName(from);
+    public static boolean isMove(String from, String to) {
+        String fromDir = getParentDirectoryKey(from);
+        String fromName = getLastPathSegment(from);
 
-        String toDir = getNameDir(to);
-        String toName = getName(to);
+        String toDir = getParentDirectoryKey(to);
+        String toName = getLastPathSegment(to);
 
         boolean isMove = !fromDir.equals(toDir) && fromName.equals(toName);
 
         if (isDirectory(from)) {
-            return isMove && checkPathsForDirectory(from, to);
+            return isMove && areDirectoryPathsCompatible(from, to);
         }
 
         return isMove;
     }
 
-    public static String getNameDir(String objectName) {
+    public static String getParentDirectoryKey(String objectName) {
         objectName = objectName.substring(0, objectName.length() - 1);
 
         if (!objectName.contains("/")) {
@@ -110,17 +108,17 @@ public class PathUtil {
         return objectName.substring(0, objectName.lastIndexOf("/") + 1);
     }
 
-    public static String getName(String objectName) {
+    public static String getLastPathSegment(String objectName) {
         objectName = objectName.substring(0, objectName.length() - 1);
         return objectName.substring(objectName.lastIndexOf("/") + 1);
     }
 
-    public String getNewKeyForMovingFile(String key, String from, String to) {
-        String path = getNameDir(from);
+    public static String buildMovedFileKey(String key, String from, String to) {
+        String path = getParentDirectoryKey(from);
         return key.substring(0, key.lastIndexOf(path)) + to + key.substring(key.indexOf(from) + from.length());
     }
 
-    private boolean checkPathsForDirectory(String from, String to) {
+    private static boolean areDirectoryPathsCompatible(String from, String to) {
         return from.charAt(from.length() - 1) == to.charAt(to.length() - 1);
     }
 
@@ -147,10 +145,6 @@ public class PathUtil {
         });
 
         return subKeys;
-    }
-
-    public static String makePathDirectory(String path) {
-        return path + "/";
     }
 
     public static boolean isPathEmpty(String path) {

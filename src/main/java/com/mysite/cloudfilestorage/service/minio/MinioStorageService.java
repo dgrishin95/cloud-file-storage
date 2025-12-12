@@ -93,7 +93,7 @@ public class MinioStorageService {
 
         for (Item item : objects) {
             String fullNameOfDownloadedFile = item.objectName();
-            String nameForDownloadedFile = PathUtil.getNameForDownloadedFile(path, fullNameOfDownloadedFile);
+            String nameForDownloadedFile = PathUtil.getDownloadFileName(path, fullNameOfDownloadedFile);
 
             InputStream downloadedFile = getObject(fullNameOfDownloadedFile);
             ZipEntry entry = new ZipEntry(nameForDownloadedFile);

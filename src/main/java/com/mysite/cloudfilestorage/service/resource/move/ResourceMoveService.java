@@ -58,7 +58,7 @@ public class ResourceMoveService {
 
         List<String> newObjectsNames = objectsNames
                 .stream()
-                .map(objectName -> PathUtil.getNewKeyForMovingFile(objectName, from, to))
+                .map(objectName -> PathUtil.buildMovedFileKey(objectName, from, to))
                 .toList();
 
         pathValidator.validateNewObjectsNamesForCreating(objectsNames, newObjectsNames);
@@ -96,7 +96,7 @@ public class ResourceMoveService {
     }
 
     private ResourceResponse moveFileResourceToDirectory(String oldKey, String newKey) throws Exception {
-        String folderPath = PathUtil.getNameDir(newKey);
+        String folderPath = PathUtil.getParentDirectoryKey(newKey);
 
         List<String> objectsNames = minioStorageService.getListObjects(folderPath, false)
                 .stream()

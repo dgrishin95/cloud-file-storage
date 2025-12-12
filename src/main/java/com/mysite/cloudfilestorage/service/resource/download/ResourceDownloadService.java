@@ -37,7 +37,7 @@ public class ResourceDownloadService {
                 zipName = PathUtil.DEFAULT_USER_DIRECTORY_NAME + ".zip";
                 return new DownloadResult(zipName, downloadDirectoryResource(key, key));
             } else {
-                zipName = PathUtil.getNameForDownloadedDirectory(path) + ".zip";
+                zipName = PathUtil.getDownloadDirectoryName(path) + ".zip";
                 return new DownloadResult(zipName, downloadDirectoryResource(path, key));
             }
         } else {

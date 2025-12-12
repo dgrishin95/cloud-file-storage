@@ -33,7 +33,7 @@ public class ResourceLookupService {
 
         String objectName = fileStatResponse.object();
 
-        String folderPath = PathUtil.getPathForFile(objectName);
+        String folderPath = PathUtil.getParentPathOfFile(objectName);
         String name = PathUtil.getNameForFile(objectName);
 
         return responseMapper.toFileResourceResponse(folderPath, name, fileStatResponse.size());

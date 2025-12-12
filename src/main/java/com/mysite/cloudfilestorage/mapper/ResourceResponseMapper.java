@@ -8,8 +8,8 @@ import org.mapstruct.Mapping;
 @Mapper(config = DefaultMapperConfig.class)
 public interface ResourceResponseMapper {
 
-    @Mapping(target = "path", expression = "java(com.mysite.cloudfilestorage.util.PathUtil.getPathForDirectory(objectName))")
-    @Mapping(target = "name", expression = "java(com.mysite.cloudfilestorage.util.PathUtil.getNameForDirectory(objectName))")
+    @Mapping(target = "path", expression = "java(com.mysite.cloudfilestorage.util.PathUtil.getParentPathOfDirectory(objectName))")
+    @Mapping(target = "name", expression = "java(com.mysite.cloudfilestorage.util.PathUtil.getDirectoryName(objectName))")
     @Mapping(target = "type", constant = "DIRECTORY")
     ResourceResponse toDirectoryResourceResponse(String objectName);
 

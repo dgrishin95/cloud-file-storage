@@ -47,7 +47,7 @@ public class ResourceUploadService {
                     return new UploadResourceData(
                             itemResourceObjectKey,
                             inputStream,
-                            PathUtil.getPathForFile(itemResourceObjectKey),
+                            PathUtil.getParentPathOfFile(itemResourceObjectKey),
                             PathUtil.getNameForFile(itemResourceObjectKey),
                             itemResource.getSize()
                     );
@@ -55,7 +55,7 @@ public class ResourceUploadService {
                 .toList();
 
         Set<String> uniqueKeysDirectories = uploadResourceData.stream()
-                .map(resourceData -> PathUtil.getNameDir(resourceData.key()))
+                .map(resourceData -> PathUtil.getParentDirectoryKey(resourceData.key()))
                 .collect(Collectors.toSet());
         List<Item> pathObjects = new ArrayList<>();
         for (String uniqueKeysDirectory : uniqueKeysDirectories) {
@@ -93,7 +93,7 @@ public class ResourceUploadService {
         List<Item> objects = minioStorageService.getListObjects(key, false);
         pathValidator.validateDirectoryIsNotEmpty(objects);
 
-        String parentKey = PathUtil.getNameDir(key);
+        String parentKey = PathUtil.getParentDirectoryKey(key);
 
         if (!parentKey.equals(userDirectoryName)) {
             objects = minioStorageService.getListObjects(parentKey, false);
