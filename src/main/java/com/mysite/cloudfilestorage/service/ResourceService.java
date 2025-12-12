@@ -47,4 +47,8 @@ public class ResourceService {
     public List<ResourceResponse> uploadResource(String path, List<MultipartFile> resource) throws Exception {
         return uploadService.uploadResource(path, resource);
     }
+
+    public ResourceResponse createEmptyDirectoryResource(String path) throws Exception {
+        return uploadService.createEmptyDirectoryResource(path);
+    }
 }

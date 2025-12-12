@@ -24,7 +24,7 @@ public class ResourceMoveService {
     private final PathValidator pathValidator;
 
     public ResourceResponse moveResource(String from, String to) throws Exception {
-        pathValidator.validateFromPath(from);
+        pathValidator.validateInitialPath(from);
         pathValidator.validatePath(to);
 
         Long userId = keyService.getUserId();

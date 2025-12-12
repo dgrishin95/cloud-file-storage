@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -20,7 +21,13 @@ public class DirectoryController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<ResourceResponse> getResource(@RequestParam(name = "path", defaultValue = "") String path) throws Exception {
+    public List<ResourceResponse> getResourceForDirectory(@RequestParam(name = "path", defaultValue = "") String path) throws Exception {
         return resourceService.getResourceForDirectory(path);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResourceResponse createEmptyDirectoryResource(@RequestParam("path") String path) throws Exception {
+        return resourceService.createEmptyDirectoryResource(path);
     }
 }

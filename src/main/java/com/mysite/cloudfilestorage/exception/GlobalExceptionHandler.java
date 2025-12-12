@@ -1,10 +1,12 @@
 package com.mysite.cloudfilestorage.exception;
 
 import com.mysite.cloudfilestorage.dto.ErrorMessageResponse;
+import com.mysite.cloudfilestorage.exception.minio.DirectoryAlreadyExistsException;
 import com.mysite.cloudfilestorage.exception.minio.InvalidOperationException;
 import com.mysite.cloudfilestorage.exception.minio.InvalidPathException;
 import com.mysite.cloudfilestorage.exception.minio.InvalidQueryException;
 import com.mysite.cloudfilestorage.exception.minio.InvalidRequestBodyException;
+import com.mysite.cloudfilestorage.exception.minio.ParentDirectoryIsNotFoundException;
 import com.mysite.cloudfilestorage.exception.minio.ResourceAlreadyExistsException;
 import com.mysite.cloudfilestorage.exception.minio.ResourceIsNotFoundException;
 import java.util.Objects;
@@ -25,7 +27,7 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.CONFLICT)
-    @ExceptionHandler({UserAlreadyExistsException.class, ResourceAlreadyExistsException.class})
+    @ExceptionHandler({UserAlreadyExistsException.class, ResourceAlreadyExistsException.class, DirectoryAlreadyExistsException.class})
     public ErrorMessageResponse handleUserAlreadyExists(Exception ex) {
         return new ErrorMessageResponse(ex.getMessage());
     }
@@ -44,7 +46,7 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(ResourceIsNotFoundException.class)
+    @ExceptionHandler({ResourceIsNotFoundException.class, ParentDirectoryIsNotFoundException.class})
     public ErrorMessageResponse handleResourceIsNotFound(ResourceIsNotFoundException ex) {
         return new ErrorMessageResponse(ex.getMessage());
     }

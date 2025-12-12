@@ -3,12 +3,14 @@ package com.mysite.cloudfilestorage.service.resource.upload;
 import com.mysite.cloudfilestorage.dto.ResourceResponse;
 import com.mysite.cloudfilestorage.dto.UploadResourceData;
 import com.mysite.cloudfilestorage.mapper.ResourceResponseMapper;
+import com.mysite.cloudfilestorage.service.minio.MinioKeyBuilder;
 import com.mysite.cloudfilestorage.service.minio.MinioStorageService;
 import com.mysite.cloudfilestorage.service.resource.common.ResourceKeyService;
 import com.mysite.cloudfilestorage.util.PathUtil;
 import com.mysite.cloudfilestorage.validation.MultipartValidator;
 import com.mysite.cloudfilestorage.validation.PathValidator;
 import io.minio.messages.Item;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class ResourceUploadService {
 
+    private final MinioKeyBuilder minioKeyBuilder;
     private final MinioStorageService minioStorageService;
     private final ResourceKeyService keyService;
     private final ResourceResponseMapper responseMapper;
@@ -77,5 +80,28 @@ public class ResourceUploadService {
                 .map(resourceData -> responseMapper.toFileResourceResponse(
                         resourceData.folderPath(), resourceData.name(), resourceData.size()))
                 .toList();
+    }
+
+    public ResourceResponse createEmptyDirectoryResource(String path) throws Exception {
+        pathValidator.validateInitialPath(path);
+        pathValidator.validateIsDirectory(path);
+
+        Long userId = keyService.getUserId();
+        String key = keyService.getKey(userId, path);
+        String userDirectoryName = minioKeyBuilder.buildUserDirectoryName(userId);
+
+        List<Item> objects = minioStorageService.getListObjects(key, false);
+        pathValidator.validateDirectoryIsNotEmpty(objects);
+
+        String parentKey = PathUtil.getNameDir(key);
+
+        if (!parentKey.equals(userDirectoryName)) {
+            objects = minioStorageService.getListObjects(parentKey, false);
+            pathValidator.validateParentDirectoryIsEmpty(objects);
+        }
+
+        minioStorageService.uploadObject(key, new ByteArrayInputStream(new byte[]{}), 0L);
+
+        return responseMapper.toDirectoryResourceResponse(key);
     }
 }

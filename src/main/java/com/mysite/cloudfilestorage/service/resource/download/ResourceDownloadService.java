@@ -25,11 +25,11 @@ public class ResourceDownloadService {
     private final PathValidator pathValidator;
 
     public DownloadResult downloadResource(String path) throws Exception {
+        pathValidator.validatePath(path);
+
         Long userId = keyService.getUserId();
         String key = keyService.getKey(userId, path);
         String userDirectoryName = minioKeyBuilder.buildUserDirectoryName(userId);
-
-        pathValidator.validatePath(path);
 
         if (PathUtil.isDirectory(path)) {
             String zipName;
